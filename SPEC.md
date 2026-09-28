@@ -1,141 +1,164 @@
-# LinkedIn AI 모닝 브리핑 — SPEC
+# AI 모닝 브리핑 — SPEC v2 (1단계: 무료 공개 소스)
 
 ## 0. 목표
-매일 07:30(KST)까지, 내가 지정한 LinkedIn 계정들의 지난 24시간 AI 관련 게시물 중
-중요한 것 최대 7건을 한국어로 요약해 **아이폰 푸시(짧은 버전)**와 **메일(긴 버전)**로 받는다.
+매일 07:00(KST)까지 **공개 소스만으로** 지난 24시간의 AI 기술·트렌드와 주목할 논문을 선별·요약하여,
+웹 페이지(+RSS)로 게시하고 구독자에게 메일로, 운영자에게 푸시로 전달한다.
+개인 계정 자격증명 없이 동작해 **동료가 구독하거나 그대로 복제해 쓸 수 있어야** 한다.
 
 ## 1. 범위
-**MVP 포함**
-- LinkedIn 알림 메일 수집 → 워치리스트 필터 → Claude 선별·요약 → 메일/푸시 발송
-- GitHub Actions cron 실행, 수동 실행(`workflow_dispatch`), dry-run 모드
+**포함**
+- 5개 소스 수집: HF Daily Papers, arXiv RSS, AINews RSS, Google Alerts RSS, Hacker News
+- 정규화 → 중복 제거 → 사전 필터 → LLM 선별 → LLM 요약
+- GitHub Pages 게시(날짜별 페이지, 아카이브, `feed.xml`), 구독자 메일, 운영자 ntfy 푸시
+- 날짜 지정 재실행(backfill), dry-run
 
-**MVP 제외 (하지 않음)**
-- LinkedIn 로그인·스크래핑, 게시물 페이지 직접 크롤링
-- 웹 대시보드, 다중 사용자, 네이티브 iOS 앱
-- 이미지/동영상 내용 분석
+**제외**
+- X/Threads 직접 수집, 로그인·스크래핑, 유료 수집 API
+- 개인별 맞춤 브리핑, 웹 구독 신청 폼, 댓글·추천 기능
+- 논문 PDF 본문 분석 (초록만 사용)
 
-## 2. 사전 준비 (사람이 직접 할 일)
-| # | 작업 | 비고 |
-|---|------|------|
-| P1 | 워치리스트 계정 팔로우 + 프로필의 🔔 알림 켜기 | 15~30명으로 시작 |
-| P2 | LinkedIn 설정 → 알림 → 이메일 알림에서 게시물 관련 알림 켜기 | |
-| P3 | **1주일간 실제 도착 메일 관찰** | 게시물당 1통인지, 다이제스트인지, 본문이 얼마나 잘리는지 확인 |
-| P4 | 수집 전용 Gmail 생성, 2단계 인증 + 앱 비밀번호 발급 | 메인 메일 권한을 GitHub에 주지 않기 위함 |
-| P5 | 메인 메일에 필터: `from:linkedin.com` → 수집용 Gmail로 자동 전달 | |
-| P6 | ntfy 앱 설치, 추측 어려운 토픽 이름 생성 | |
-| P7 | GitHub **private** 저장소 생성, Secrets 등록 (휴대폰 브라우저에서) | 아래 9장 목록 |
-| P8 | 실제 LinkedIn 알림 메일 5~10건을 fixture로 확보 | M0 워크플로로 자동화 가능 |
+## 2. 사용자
+| 역할 | 하는 일 |
+|------|---------|
+| 운영자(본인) | 소스·키워드 관리, 품질 점검, 실패 대응 |
+| 구독자(동료) | 메일 또는 RSS로 읽기 |
+| 기여자(동료) | `sources.yaml`에 키워드·Alerts 피드 추가 PR |
 
-## 3. 처리 흐름
-```
-[cron 21:30 UTC] → collect(IMAP) → parse → filter(워치리스트·중복·24h)
-   → select(Haiku, 점수화) → summarize(Sonnet) → render(push/email)
-   → deliver → state 갱신·커밋
-```
+## 3. 소스별 수집 요구사항
+| 소스 | 방식 | 수집 기준 | 주의 |
+|------|------|-----------|------|
+| **HF Daily Papers** | `GET https://huggingface.co/api/daily_papers?date=YYYY-MM-DD` | 실행 시점 UTC 날짜 목록, upvote 기준치 이상 | 응답 필드명(upvote, GitHub 링크 등)은 M1에서 실제 응답으로 확정 |
+| **arXiv RSS** | `https://rss.arxiv.org/rss/cs.CL+cs.AI+cs.LG` | 신규(new)·교차(cross) 항목만, 개정(replace) 제외 | 하루 수백 건이라 키워드 사전 필터 필수. 주말에는 신규 공지 없음 |
+| **AINews** | news.smol.ai RSS | 최근 1회차 | 하루 1건의 긴 요약본. 원문 전재 금지, 핵심 항목만 재요약하고 원문 링크 |
+| **Google Alerts** | 운영자가 만든 Alerts의 RSS URL | 최근 26시간 | 링크가 `google.com/url?...&url=` 형태이므로 실제 URL 추출. 색인 지연으로 1~3일 늦을 수 있음 |
+| **Hacker News** | Algolia API `search_by_date` | 최근 24시간, 점수 기준치 이상, AI 키워드 | 기사 본문은 가져오지 않고 제목·링크·점수만 사용 |
 
-## 4. 수집 규칙
-- IMAP(`imap.gmail.com`)으로 수집용 Gmail 접속, 발신 도메인 `linkedin.com` 메일만 대상
-- IMAP `SINCE`는 날짜 단위이므로, 코드에서 `Date` 헤더로 **최근 26시간** 재필터
-- 파싱 항목: 작성자 이름, 작성자 프로필 URL(가능 시), 게시물 본문 스니펫, 게시물 URL, 수신 시각
-- **URL 정규화**: 추적 파라미터가 붙은 링크에서 `urn:li:activity:<ID>` 또는 `/posts/...` 경로를 추출해 `activity_id`를 중복 키로 사용
-- **워치리스트 필터**: `config.yaml`의 계정 목록에 있는 작성자만 통과
-  (LinkedIn 메일에 섞여 오는 추천 게시물, 채용, "알 수도 있는 사람" 등은 버림)
-- 파싱 실패 메일은 버리지 말고 `logs/unparsed/`에 제목과 발신자만 기록
-- 본문은 **메일에 담긴 스니펫만 사용**. 원문 페이지를 가져오지 않음
+**Google Alerts 초기 쿼리 예시** (운영자가 생성, 전달 방식 = RSS 피드)
+- `site:linkedin.com/posts ("LLM" OR "AI agent" OR "생성형 AI")`
+- `site:linkedin.com/pulse (RAG OR "LLM evaluation")`
+- `("금융" OR "카드사") ("생성형 AI" OR LLM)`
 
-## 5. 선별 규칙 (1단계, 저가 모델)
-- 모델: `claude-haiku-4-5-20251001`
-- 게시물별 1~5점과 한 줄 근거를 JSON으로 반환
-- **가점 주제**: 신규 모델·논문·벤치마크, 엔터프라이즈 도입 사례, RAG/에이전트/LLMOps 실무, AI 규제·거버넌스, 금융권 AI
-- **제외**: 채용 공고, 행사·강의 홍보, 참여 유도형 글("동의하면 댓글"), 내용 없는 축하·근황
-- 3점 이상만 통과, 점수순 최대 7건
-- 좋은 예/나쁜 예: `prompts/examples.md`에 각 3건 (P8 fixture에서 선택)
+**공통**
+- 소스별 타임아웃 30초, 재시도 2회
+- **한 소스가 실패해도 나머지로 발행**하고, 페이지 하단에 "수집 실패 소스" 표기
+- 모든 요청에 식별 가능한 User-Agent 설정, 소스별 호출 간격 준수
 
-## 6. 요약 형식 (2단계, 상위 모델)
+## 4. 정규화·중복 제거
+- 공통 스키마 `Item`: `source`, `kind(paper|news|community|linkedin)`, `title`, `url`, `canonical_id`, `published_at`, `snippet`, `signals{upvotes, points, ...}`
+- `canonical_id` 규칙
+  - 논문: arXiv ID (버전 접미사 `v2` 등 제거). HF, arXiv, HN, AINews에 같은 논문이 있으면 하나로 병합하고 신호값을 함께 표시
+  - 그 외: 추적 파라미터(`utm_*` 등)를 제거한 URL
+- 이전 발행분 재등장 방지: `state/published.json` (30일 보관)
+
+## 5. 선별 규칙
+**사전 필터 (코드)**
+- arXiv: `sources.yaml`의 키워드가 제목·초록에 포함된 것만
+- HF: upvote ≥ 기준치, HN: points ≥ 기준치
+- 선별 단계 입력은 최대 150건
+
+**LLM 선별** — `claude-haiku-4-5-20251001`, 20건 단위 배치
+- 항목별 1~5점 + 한 줄 근거, JSON 스키마 검증
+- 가점: 신규 모델·아키텍처, RAG/에이전트/평가 방법론, 추론 효율화, 엔터프라이즈 적용 사례, 규제·거버넌스, 금융 도메인
+- 감점·제외: 홍보성 글, 채용, 근거 없는 전망, 중복 보도
+- 섹션별 상위 항목 채택 (6장)
+
+## 6. 브리핑 구성
 - 모델: `claude-sonnet-5`
-- 한국어 요약, 전문 용어는 원문 병기 (예: 검색 증강 생성(RAG))
-- 게시물별: `제목(15자 내외)`, `작성자`, `요약 3줄`, `왜 중요한가 1줄`, `링크`
-- 맨 위 "오늘의 헤드라인" 1~2줄
+- 한국어, 전문 용어 원문 병기, 모든 항목에 원문 링크
+- 요약은 **자체 문장으로 작성**하고 원문 문장을 옮기지 않음
 
-**푸시 (ntfy, 500자 이내)**
-```
-🤖 AI 브리핑 9/16 (5건)
-오늘의 헤드라인: ...
-1. [제목] 작성자
-2. [제목] 작성자
-→ 자세한 내용은 메일
-```
+| 섹션 | 개수 | 항목 형식 |
+|------|------|-----------|
+| 오늘의 헤드라인 | 2~3줄 | 섹션 전체를 관통하는 흐름 |
+| 주목할 논문 | 최대 5 | 제목(한/영), 한 줄 핵심, 3줄 요약, 실무 시사점, 링크(arXiv, HF) |
+| 업계·기술 동향 | 최대 5 | 제목, 3줄 요약, 왜 중요한가, 출처 |
+| LinkedIn 화제 | 최대 3 | 작성자(있으면), 요약, 링크 — 항목이 없으면 섹션 생략 |
+| 수집 통계 | 1줄 | 소스별 수집/선별 건수, 실패 소스 |
 
-**메일 (HTML + 텍스트 대체본)**
-- 제목: `[AI 브리핑] 2026-09-16 (5건) — 헤드라인 앞부분`
-- 본문: 헤드라인 → 게시물 카드 목록 → 하단에 "선별 제외 N건" 통계
+## 7. 게시·전달
+**웹 (GitHub Pages)**
+- `site/YYYY-MM-DD.html`, `site/index.html`(최근 30일 목록), `site/feed.xml`(RSS 2.0)
+- 정적 HTML만 생성 (프레임워크 없음), 모바일 가독성 우선, 라이트/다크 대응
+- 같은 날짜 재실행 시 해당 날짜 페이지만 덮어씀
 
-## 7. 전달·스케줄
-- cron: `30 21 * * *` (KST 06:30, 실행 지연 감안해 여유 둠)
-- 주말 포함 매일
-- 메일: 수집용 Gmail SMTP로 메인 메일에 발송
-- **0건일 때**: 푸시만 "오늘은 주요 게시물 없음" 발송, 메일 생략
+**메일**
+- **발송 전용 Gmail** SMTP, 구독자는 BCC
+- 구독자 목록은 저장소가 아니라 GitHub Secrets `SUBSCRIBERS`(쉼표 구분)에 보관
+- 제목: `[AI 브리핑] 2026-09-29 — 헤드라인 앞부분`
+- 본문: 헤드라인, 섹션별 제목과 한 줄 요약, 웹 페이지 링크
 
-## 8. 상태·실패 처리
-- `state/sent.json`: `{activity_id: 발송일}`, 30일 지난 항목 삭제, 실행 후 봇 커밋
-- 같은 activity_id는 재발송 금지
-- Claude API 실패: 지수 백오프 3회 재시도
-- 선별 단계 실패 시: 선별 없이 최신순 7건으로 요약 진행
-- 전체 실패 시: 푸시로 "브리핑 실패 + Actions 로그 링크" 발송
-- 로그: 수집 건수, 필터 후 건수, 선별 통과 건수, 토큰 사용량
+**푸시 (운영자 전용)**
+- ntfy: 헤드라인 + 페이지 링크, 실패 시 실패 알림
 
-## 9. 비용·보안
-- 월 API 비용 상한 목표: $5 (요청마다 토큰 수 로깅)
-- **GitHub Secrets**: `ANTHROPIC_API_KEY`, `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`, `MAIL_TO`, `NTFY_TOPIC`
-- 비밀값은 로그에 출력 금지
-- 게시물 본문은 신뢰할 수 없는 입력으로 취급: 프롬프트에서 데이터 영역을 태그로 구분하고, 모델 출력은 JSON 스키마로 검증 (프롬프트 인젝션 대비)
-- LinkedIn 로그인 자동화·크롤링 코드는 추가하지 않음
+## 8. 스케줄·운영
+- cron `0 21 * * *` (KST 06:00), `workflow_dispatch`에 `date`, `dry_run` 입력
+- 전체 실행 10분 이내
+- 전체 실패 시: 푸시로 실패 알림 + Actions 로그 링크, 메일 미발송
+- 로그: 소스별 수집 건수, 필터 후 건수, 선별 건수, 토큰 사용량과 추정 비용
+
+## 9. 비용·보안·정책
+- 월 API 비용 목표 $10 이하, 실행마다 추정 비용 기록
+- Secrets: `ANTHROPIC_API_KEY`, `SMTP_USER`, `SMTP_APP_PASSWORD`, `SUBSCRIBERS`, `NTFY_TOPIC`
+- 수집 텍스트는 신뢰할 수 없는 입력으로 취급: 프롬프트에서 데이터 영역을 태그로 격리하고, 출력은 스키마 검증 후 HTML 이스케이프
+- **공개 게시 전제**: GitHub Pages는 공개 사이트이므로 회사 내부 정보와 구독자 정보는 페이지와 저장소에 넣지 않음
+- 저장소는 public 권장 (무료 Pages 사용 + 동료 PR 기여)
 
 ## 10. 기술 스택·구조
 - Python 3.12, uv, pytest, ruff
-- 라이브러리: `anthropic`, `pydantic`, `beautifulsoup4`, `pyyaml`, `httpx`, 표준 `imaplib`/`smtplib`
+- 라이브러리: `anthropic`, `httpx`, `feedparser`, `pydantic`, `jinja2`, `pyyaml`
 
 ```
 .
-├── CLAUDE.md
-├── SPEC.md
-├── config.yaml
-├── prompts/  (select.md, summarize.md, examples.md)
-├── src/briefing/  (collect.py, parse.py, filter.py, select.py,
-│                   summarize.py, render.py, deliver.py, state.py, main.py)
-├── state/sent.json
-├── tests/  (fixtures/*.eml, test_*.py)
-└── .github/workflows/  (daily.yml, ci.yml, fetch-fixtures.yml)
+├── CLAUDE.md, SPEC.md, sources.yaml
+├── prompts/        (select.md, summarize.md)
+├── templates/      (day.html.j2, index.html.j2, feed.xml.j2, email.html.j2)
+├── src/briefing/
+│   ├── sources/    (hf.py, arxiv.py, ainews.py, alerts.py, hn.py)
+│   ├── models.py, normalize.py, dedupe.py, prefilter.py
+│   └── select.py, summarize.py, render.py, publish.py, notify.py, main.py
+├── state/published.json
+├── site/           (Pages 게시 대상)
+├── tests/fixtures/ (소스별 실제 응답 샘플)
+└── .github/workflows/ (daily.yml, ci.yml)
 ```
 
-## 11. config.yaml 예시
+## 11. sources.yaml 예시
 ```yaml
 timezone: Asia/Seoul
 lookback_hours: 26
-max_items: 7
-min_score: 3
-watchlist:
-  - name: "Andrew Ng"
-    profile: "https://www.linkedin.com/in/andrewyng"
-  - name: "홍길동"
-    profile: "https://www.linkedin.com/in/..."
-delivery:
-  push: true
-  email: true
-  send_when_empty: push_only
+hf_papers:
+  min_upvotes: 10
+arxiv:
+  categories: [cs.CL, cs.AI, cs.LG]
+  keywords: [RAG, retrieval, agent, evaluation, benchmark, reasoning,
+             quantization, inference, financial, fraud]
+ainews:
+  feed: "<M1에서 확인한 RSS URL>"
+google_alerts:
+  - name: "LinkedIn - LLM/Agent"
+    feed: "https://www.google.com/alerts/feeds/..."
+hackernews:
+  min_points: 100
+  keywords: [LLM, GPT, Claude, Gemini, agent, AI]
+limits:
+  prefilter_max: 150
+  papers: 5
+  news: 5
+  linkedin: 3
 ```
 
-## 12. 마일스톤 (PR 단위)
+## 12. 마일스톤
 | # | 내용 | 완료 조건 |
 |---|------|-----------|
-| M0 | 수동 실행 워크플로로 최근 LinkedIn 메일 10건을 artifact로 저장 | 휴대폰에서 artifact 다운로드 확인 |
-| M1 | fixture `.eml` → 파싱 → 워치리스트 필터 | pytest 통과, 추천 게시물 제외 확인 |
-| M2 | 선별·요약 + dry-run(`--dry-run`이면 `out/`에 md 출력) | 수동 실행 결과 md를 읽고 품질 합격 |
-| M3 | 메일 발송 | 메인 메일 수신 확인 |
-| M4 | 실제 IMAP 수집 연결 + 중복 제거 + state 커밋 | 2회 연속 실행 시 중복 0건 |
-| M5 | cron 활성화 + ntfy 푸시 + 실패 알림 | 3일 연속 07:30 이전 수신 |
+| M1 | 5개 소스 수집기 + fixture 저장 + `Item` 정규화 | 수동 실행으로 소스별 fixture 저장, pytest 통과 |
+| M2 | 중복 제거(arXiv ID 병합 포함) + 사전 필터 | 같은 논문이 여러 소스에 있을 때 1건으로 병합되는 테스트 통과 |
+| M3 | LLM 선별·요약 + dry-run(md 출력) | dry-run 결과를 운영자가 읽고 품질 합격 |
+| M4 | HTML·RSS 렌더링 + GitHub Pages 게시 | 휴대폰에서 페이지 확인, RSS 리더 구독 성공 |
+| M5 | 구독자 메일 + 운영자 푸시 | 본인 포함 2명 수신 확인 |
+| M6 | cron 활성화 + 실패 처리 + 비용 로그 | 5일 연속 07:00 이전 발행, 소스 1개 강제 실패 시 부분 발행 확인 |
 
 ## 13. 미정 사항
-- [ ] P3 관찰 결과에 따라 파서 전략 확정 (개별 메일 / 다이제스트)
-- [ ] 워치리스트 최종 목록
-- [ ] 좋은 예/나쁜 예 게시물 선정
+- [ ] AINews RSS URL, HF 응답 필드 확정 (M1)
+- [ ] 동료 회사 메일로 외부 발송 메일이 수신되는지 확인 (안 되면 RSS·개인 메일로 안내)
+- [ ] upvote·points 기준치는 1주 운영 후 조정
+- [ ] 2단계(xAI X Search) 도입 여부는 1단계 4주 운영 후 결정
