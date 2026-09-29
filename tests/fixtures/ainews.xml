@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>AINews (sample)</title>
+    <link>https://news.smol.ai/</link>
+    <description>Sample feed for tests</description>
+    <item>
+      <title>[AINews] Sample issue from yesterday</title>
+      <link>https://news.smol.ai/issues/26-09-27-sample?utm_source=rss</link>
+      <description>&lt;p&gt;Older sample issue summary.&lt;/p&gt;</description>
+      <pubDate>Sun, 27 Sep 2026 05:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>[AINews] Sample latest issue</title>
+      <link>https://news.smol.ai/issues/26-09-28-sample</link>
+      <description>&lt;p&gt;Latest sample issue summary with &lt;b&gt;markup&lt;/b&gt;.&lt;/p&gt;</description>
+      <pubDate>Mon, 28 Sep 2026 05:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
