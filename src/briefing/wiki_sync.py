@@ -1,7 +1,8 @@
 """docs/wiki/<섹션>/<문서>.md 를 GitHub Wiki(평면 구조)용 파일로 변환한다.
 
 - `docs/wiki/03-pipeline/briefing.md` -> `03-pipeline-briefing.md` (위키 페이지 이름)
-- 문서 사이의 상대 링크(`../02-sources/collection.md`)는 위키 링크(`02-sources-collection`)로 바꾼다.
+- 문서 사이의 상대 링크(`../02-sources/collection.md`)는
+  위키 링크(`02-sources-collection`)로 바꾼다.
 - `docs/wiki/Home.md`는 그대로 `Home.md`, `_Sidebar.md`는 섹션 구조에서 생성한다.
 """
 
