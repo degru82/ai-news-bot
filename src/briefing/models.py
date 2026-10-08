@@ -26,6 +26,7 @@ class FetchResult(BaseModel):
     source: str
     items: list[Item] = Field(default_factory=list)
     error: str | None = None
+    skipped: bool = False
 
     @property
     def ok(self) -> bool:

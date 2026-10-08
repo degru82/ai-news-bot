@@ -39,13 +39,19 @@ def main(argv: list[str] | None = None) -> int:
 
     results = collect_all(load_config(args.config), client_for, now)
     for result in results:
-        if result.ok:
+        if result.skipped:
+            print(f"{result.source}: 설정 안 됨 (건너뜀)")
+        elif result.ok:
             print(f"{result.source}: {len(result.items)}건")
             for item in result.items:
                 print(f"  - [{item.kind}] {item.title} ({item.canonical_id})")
         else:
             print(f"{result.source}: 수집 실패 - {result.error}")
-    return 1 if all(not r.ok for r in results) else 0
+
+    configured_results = [r for r in results if not r.skipped]
+    if not configured_results:
+        return 0
+    return 1 if all(not r.ok for r in configured_results) else 0
 
 
 if __name__ == "__main__":
