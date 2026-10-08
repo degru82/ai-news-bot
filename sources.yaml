@@ -1,0 +1,23 @@
+timezone: Asia/Seoul
+lookback_hours: 26
+hf_papers:
+  min_upvotes: 10
+arxiv:
+  categories: [cs.CL, cs.AI, cs.LG]
+  keywords: [RAG, retrieval, agent, evaluation, benchmark, reasoning,
+             quantization, inference, financial, fraud]
+ainews:
+  # 실제 응답 확인은 --save-fixtures 로 (SPEC 13장)
+  feed: "https://news.smol.ai/rss.xml"
+# 운영자가 만든 Google Alerts RSS URL을 추가한다.
+# 예: - name: "LinkedIn - LLM/Agent"
+#       feed: "https://www.google.com/alerts/feeds/..."
+google_alerts: []
+hackernews:
+  min_points: 100
+  keywords: [LLM, GPT, Claude, Gemini, agent, AI]
+limits:
+  prefilter_max: 150
+  papers: 5
+  news: 5
+  linkedin: 3

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>cs.CL+cs.AI+cs.LG updates on arXiv.org</title>
+    <link>http://rss.arxiv.org/rss/cs.CL+cs.AI+cs.LG</link>
+    <description>Sample feed for tests</description>
+    <item>
+      <title>Sample New Paper on Retrieval</title>
+      <link>https://arxiv.org/abs/2609.11111</link>
+      <description>arXiv:2609.11111v1 Announce Type: new
+Abstract: Sample abstract of a new paper used only in tests.</description>
+      <guid isPermaLink="false">oai:arXiv.org:2609.11111v1</guid>
+      <pubDate>Tue, 29 Sep 2026 00:00:00 -0400</pubDate>
+    </item>
+    <item>
+      <title>Sample Cross-listed Paper</title>
+      <link>https://arxiv.org/abs/2609.44444</link>
+      <description>arXiv:2609.44444v1 Announce Type: cross
+Abstract: Sample abstract of a cross-listed paper used only in tests.</description>
+      <guid isPermaLink="false">oai:arXiv.org:2609.44444v1</guid>
+      <pubDate>Tue, 29 Sep 2026 00:00:00 -0400</pubDate>
+    </item>
+    <item>
+      <title>Sample Revised Paper</title>
+      <link>https://arxiv.org/abs/2601.55555</link>
+      <description>arXiv:2601.55555v3 Announce Type: replace
+Abstract: Sample abstract of a revised paper used only in tests.</description>
+      <guid isPermaLink="false">oai:arXiv.org:2601.55555v3</guid>
+      <pubDate>Tue, 29 Sep 2026 00:00:00 -0400</pubDate>
+    </item>
+    <item>
+      <title>Sample Revised Cross-listed Paper</title>
+      <link>https://arxiv.org/abs/2601.66666</link>
+      <description>arXiv:2601.66666v2 Announce Type: replace-cross
+Abstract: Sample abstract used only in tests.</description>
+      <guid isPermaLink="false">oai:arXiv.org:2601.66666v2</guid>
+      <pubDate>Tue, 29 Sep 2026 00:00:00 -0400</pubDate>
+    </item>
+  </channel>
+</rss>
