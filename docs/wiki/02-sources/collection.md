@@ -24,6 +24,7 @@ HF Daily Papers, arXiv RSS, AINews RSS, Google Alerts RSS, Hacker News(Algolia) 
 - **논문 canonical_id**: arXiv URL이면 `arxiv:<버전 제거 ID>`로 통일(HF·arXiv·HN이 같은 논문이면 M2에서 병합 가능). HN은 arXiv 링크일 때만 이 규칙을 따르고 `kind`는 `community`로 둔다.
 - **HN 키워드 필터를 M1에 포함**: Algolia는 여러 키워드 OR 검색이 없어 점수·기간은 서버에서, 키워드(단어 경계, 대소문자 무시)는 코드에서 거른다. HF의 upvote 기준도 수집 단계에서 적용한다. arXiv 키워드 필터와 상한 150건은 M2(사전 필터)에서.
 - **Google Alerts**: 오류 메시지에는 피드 이름만 쓴다(피드 URL에 계정 식별 정보가 있고 Actions 로그는 공개될 수 있음). 피드 일부만 실패하면 로그 경고 후 나머지로 진행하고, 전부 실패할 때만 소스 실패로 기록한다.
+- **미설정 소스 처리 정책**: 설정되지 않은 소스(예: `google_alerts: []`)는 `FetchResult.skipped=True`로 표시하고 종료 코드 판정에서 제외한다. 종료 코드 1은 설정된 모든 소스가 실패했을 때만 반환한다. 이유: 미설정 Alerts 소스가 성공(0건)으로 카운트되면, 나머지 소스 전체의 장애가 가려져 운영자가 알림을 받지 못할 수 있다.
 - **미확정(SPEC 13장)**: HF 응답 필드명과 AINews RSS URL은 네트워크가 막힌 환경에서 구현해 실응답으로 확인하지 못했다. `tests/fixtures/`는 손으로 쓴 샘플이며, 운영자가 `--save-fixtures`로 교체한 뒤 필드를 확정해야 M1이 완료된다.
 
 ## 변경 이력
