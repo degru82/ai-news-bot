@@ -1,41 +1,425 @@
 [
   {
     "paper": {
-      "id": "2609.11111",
-      "title": "Sample Paper A: Agentic Retrieval at Scale",
-      "summary": "Sample abstract for paper A used only in tests.",
-      "upvotes": 45,
-      "githubRepo": "https://github.com/example/paper-a",
-      "githubStars": 120,
-      "publishedAt": "2026-09-28T17:59:00.000Z"
+      "id": "2610.21601",
+      "authors": [
+        {
+          "_id": "6ad1b83a8304c5d882d7b90f",
+          "user": {
+            "_id": "672732c2cd22d4f3405a4190",
+            "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/no-auth/bNb0fDWZ0WWeArZtjX_1s.png",
+            "isPro": false,
+            "fullname": "hbx",
+            "user": "Houbingxi",
+            "type": "user",
+            "name": "Houbingxi"
+          },
+          "name": "Bingxi Hou",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-10-16T08:29:33.270Z",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1b83a8304c5d882d7b910",
+          "user": {
+            "_id": "644a1dbb9c340e5e1e713153",
+            "avatarUrl": "/avatars/21cb93ad067a798a39829ef7e67c70b8.svg",
+            "isPro": false,
+            "fullname": "JGC",
+            "user": "Nothing2Say",
+            "type": "user",
+            "name": "Nothing2Say"
+          },
+          "name": "Guochao Jiang",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-10-16T08:29:40.035Z",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1b83a8304c5d882d7b911",
+          "name": "Guofeng Quan",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1b83a8304c5d882d7b912",
+          "name": "Weiqing Li",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1b83a8304c5d882d7b913",
+          "user": {
+            "_id": "68b691341c52b8b741ba7fd4",
+            "avatarUrl": "/avatars/efae3c632577565eb3645e64d4f725ac.svg",
+            "isPro": false,
+            "fullname": "wenfeng feng",
+            "user": "wenfengfwf",
+            "type": "user",
+            "name": "wenfengfwf"
+          },
+          "name": "Wenfeng Feng",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-10-16T08:29:36.739Z",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1b83a8304c5d882d7b914",
+          "name": "Guohua Liu",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1b83a8304c5d882d7b915",
+          "name": "Yuewei Zhang",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2026-10-15T00:00:00.000Z",
+      "submittedOnDailyAt": "2026-10-16T00:00:00.000Z",
+      "title": "Waypoint-OPD: Transferring RL-Induced Policy Shifts via Gated On-Policy Distillation",
+      "submittedOnDailyBy": {
+        "_id": "644a1dbb9c340e5e1e713153",
+        "avatarUrl": "/avatars/21cb93ad067a798a39829ef7e67c70b8.svg",
+        "isPro": false,
+        "fullname": "JGC",
+        "user": "Nothing2Say",
+        "type": "user",
+        "name": "Nothing2Say"
+      },
+      "summary": "Policy-shift distillation reuses the difference between a teacher's log probabilities before and after reinforcement learning (RL) as supervision on student-generated trajectories. However, this endpoint policy shift cannot reveal whether local action preferences evolved consistently during teacher training. The same endpoint shift can result from early and late shifts that reinforce or partially cancel each other. We investigate whether agreement between early and late teacher policy shifts can guide selective transfer. We introduce Waypoint-guided On-Policy Distillation (Waypoint-OPD), which uses an intermediate teacher checkpoint from the same RL run to compare early and late shifts in relative action preferences at student-visited prefixes. We gate the endpoint shift according to the directional agreement between the early and late shifts, suppressing it when they point in opposing directions. Compared with endpoint-only transfer, our method requires only one additional frozen-teacher scoring pass. Using RL-trained Qwen3-4B teachers, we evaluate our method with Qwen3-8B, Qwen3-14B, and Qwen3-30B-A3B as student models in mathematical and code reasoning. In all six domain--student settings, Waypoint-OPD achieves the highest domain-average score among the compared distillation methods. Ablations with the Qwen3-8B student show that removing or shuffling gates reduces mathematical reasoning performance. These results support the use of directional agreement between early and late teacher policy shifts to weight the endpoint shift during student training.",
+      "upvotes": 659,
+      "discussionId": "6ad1b83a8304c5d882d7b916",
+      "githubRepo": "https://github.com/hhhbxloveai/WaypointOPD",
+      "githubRepoAddedBy": "user",
+      "ai_summary": "Waypoint-OPD improves policy-shift distillation by gating endpoint shifts using directional agreement between early and late teacher policy changes, boosting reasoning performance with minimal overhead.",
+      "ai_keywords": [
+        "policy-shift distillation",
+        "reinforcement learning",
+        "log probabilities",
+        "Waypoint-guided On-Policy Distillation",
+        "cross-attention",
+        "Qwen3"
+      ],
+      "ai_summary_model": "thinkingmachines/Inkling-Small",
+      "githubStars": 3
     },
-    "title": "Sample Paper A: Agentic Retrieval at Scale",
-    "summary": "Sample abstract for paper A used only in tests.",
-    "publishedAt": "2026-09-29T01:00:00.000Z",
-    "numComments": 3
+    "publishedAt": "2026-10-14T20:00:00.000Z",
+    "title": "Waypoint-OPD: Transferring RL-Induced Policy Shifts via Gated On-Policy Distillation",
+    "summary": "Policy-shift distillation reuses the difference between a teacher's log probabilities before and after reinforcement learning (RL) as supervision on student-generated trajectories. However, this endpoint policy shift cannot reveal whether local action preferences evolved consistently during teacher training. The same endpoint shift can result from early and late shifts that reinforce or partially cancel each other. We investigate whether agreement between early and late teacher policy shifts can guide selective transfer. We introduce Waypoint-guided On-Policy Distillation (Waypoint-OPD), which uses an intermediate teacher checkpoint from the same RL run to compare early and late shifts in relative action preferences at student-visited prefixes. We gate the endpoint shift according to the directional agreement between the early and late shifts, suppressing it when they point in opposing directions. Compared with endpoint-only transfer, our method requires only one additional frozen-teacher scoring pass. Using RL-trained Qwen3-4B teachers, we evaluate our method with Qwen3-8B, Qwen3-14B, and Qwen3-30B-A3B as student models in mathematical and code reasoning. In all six domain--student settings, Waypoint-OPD achieves the highest domain-average score among the compared distillation methods. Ablations with the Qwen3-8B student show that removing or shuffling gates reduces mathematical reasoning performance. These results support the use of directional agreement between early and late teacher policy shifts to weight the endpoint shift during student training.",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2610.21601.png",
+    "numComments": 4,
+    "submittedBy": {
+      "_id": "644a1dbb9c340e5e1e713153",
+      "avatarUrl": "/avatars/21cb93ad067a798a39829ef7e67c70b8.svg",
+      "fullname": "JGC",
+      "name": "Nothing2Say",
+      "type": "user",
+      "isPro": false,
+      "isHf": false,
+      "isHfAdmin": false,
+      "isMod": false,
+      "followerCount": 6,
+      "isUserFollowing": false
+    },
+    "isAuthorParticipating": true
   },
   {
     "paper": {
-      "id": "2609.22222v2",
-      "title": "Sample Paper B: Efficient Inference",
-      "summary": "Sample abstract for paper B used only in tests.",
-      "upvotes": 12,
-      "publishedAt": "2026-09-28T12:00:00.000Z"
+      "id": "2610.18829",
+      "authors": [
+        {
+          "_id": "6acf1130abe004a210f25dc4",
+          "user": {
+            "_id": "66a0caa1a7a6ed88ad1c0ddf",
+            "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/66a0caa1a7a6ed88ad1c0ddf/WoOP24-ruuHy4ryNhRp0D.jpeg",
+            "isPro": false,
+            "fullname": "Xuyang Liu",
+            "user": "xuyang-liu16",
+            "type": "user",
+            "name": "xuyang-liu16"
+          },
+          "name": "Xuyang Liu",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-10-16T08:34:06.119Z",
+          "hidden": false
+        },
+        {
+          "_id": "6acf1130abe004a210f25dc5",
+          "name": "Shihao Wang",
+          "hidden": false
+        },
+        {
+          "_id": "6acf1130abe004a210f25dc6",
+          "name": "Xinyu Wei",
+          "hidden": false
+        },
+        {
+          "_id": "6acf1130abe004a210f25dc7",
+          "name": "Minghan Li",
+          "hidden": false
+        },
+        {
+          "_id": "6acf1130abe004a210f25dc8",
+          "name": "Zeqing Wang",
+          "hidden": false
+        },
+        {
+          "_id": "6acf1130abe004a210f25dc9",
+          "name": "Zuhao Yang",
+          "hidden": false
+        },
+        {
+          "_id": "6acf1130abe004a210f25dca",
+          "name": "Zichen Wen",
+          "hidden": false
+        },
+        {
+          "_id": "6acf1130abe004a210f25dcb",
+          "name": "Lei Zhang",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2026-10-13T00:00:00.000Z",
+      "submittedOnDailyAt": "2026-10-16T00:00:00.000Z",
+      "title": "OmniCompass: A Holistic Benchmark for Omni-Modal Video Grounding and Understanding",
+      "submittedOnDailyBy": {
+        "_id": "69db8a673114e93a4dbdec28",
+        "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/69db8a673114e93a4dbdec28/eJg3LOMGXpPKPa9lrzHtE.jpeg",
+        "isPro": true,
+        "fullname": "PolyU_VCLab",
+        "user": "VCLab-PolyU",
+        "type": "user",
+        "name": "VCLab-PolyU"
+      },
+      "summary": "With the rapid development of multimodal large language models (MLLMs), evaluating their video understanding capabilities has become increasingly important. Existing video understanding benchmarks cover only part of the evaluation dimensions, limiting systematic diagnosis of omni-modal video understanding. We introduce OmniCompass, a holistic benchmark for omni-modal video grounding and understanding. OmniCompass defines two evaluation tracks: OmniCompass-VL assesses vision-language models on tasks requiring visual evidence, while OmniCompass-AV assesses omni-modal models on tasks requiring joint audio-visual evidence. Each track includes three complementary tasks: temporal grounding (TG), spatial grounding (SG), and question answering (QA), assessing when a referenced target appears, where it is, and what happens. QA covers five perception and three reasoning categories in OmniCompass-VL, and three perception and two reasoning categories in OmniCompass-AV. OmniCompass-VL contains 820 videos and 2,460 instances across domains and three duration types: short, medium, and long. A narrative- and audio-rich subset forms OmniCompass-AV with 240 videos and 720 instances. Each instance is evaluated under two paired settings: text-only and text+image, specifying the same target through text and visual-language guidance. All instances are manually annotated with multi-round quality verification. Evaluations of 50 MLLMs show that open-source models still lag behind proprietary counterparts, particularly in audio-visual understanding. Precise temporal and spatial grounding remains challenging even for leading models, and their predictions still exhibit inconsistencies across the paired target specifications.",
+      "upvotes": 571,
+      "discussionId": "6acf1131abe004a210f25dcc",
+      "projectPage": "https://omnicompass.netlify.app/",
+      "githubRepo": "https://github.com/PolyU-VCLab/OmniCompass",
+      "githubRepoAddedBy": "user",
+      "ai_summary": "OmniCompass is a holistic benchmark for omni-modal video grounding and understanding that evaluates vision-language and audio-visual reasoning through temporal grounding, spatial grounding, and question answering tasks.",
+      "ai_keywords": [
+        "multimodal large language models",
+        "video understanding",
+        "temporal grounding",
+        "spatial grounding",
+        "question answering",
+        "audio-visual reasoning",
+        "vision-language models"
+      ],
+      "ai_summary_model": "thinkingmachines/Inkling-Small",
+      "githubStars": 60,
+      "organization": {
+        "_id": "69dba0c8dc88214a5ddca3f2",
+        "name": "VCLab-HKPU",
+        "fullname": "VCLab",
+        "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/69db8a673114e93a4dbdec28/WgIv-pv3Mt2HBSdoR35eW.png"
+      }
     },
-    "title": "Sample Paper B: Efficient Inference",
-    "publishedAt": "2026-09-29T01:00:00.000Z",
-    "numComments": 0
+    "publishedAt": "2026-10-12T20:00:00.000Z",
+    "title": "OmniCompass: A Holistic Benchmark for Omni-Modal Video Grounding and Understanding",
+    "summary": "With the rapid development of multimodal large language models (MLLMs), evaluating their video understanding capabilities has become increasingly important. Existing video understanding benchmarks cover only part of the evaluation dimensions, limiting systematic diagnosis of omni-modal video understanding. We introduce OmniCompass, a holistic benchmark for omni-modal video grounding and understanding. OmniCompass defines two evaluation tracks: OmniCompass-VL assesses vision-language models on tasks requiring visual evidence, while OmniCompass-AV assesses omni-modal models on tasks requiring joint audio-visual evidence. Each track includes three complementary tasks: temporal grounding (TG), spatial grounding (SG), and question answering (QA), assessing when a referenced target appears, where it is, and what happens. QA covers five perception and three reasoning categories in OmniCompass-VL, and three perception and two reasoning categories in OmniCompass-AV. OmniCompass-VL contains 820 videos and 2,460 instances across domains and three duration types: short, medium, and long. A narrative- and audio-rich subset forms OmniCompass-AV with 240 videos and 720 instances. Each instance is evaluated under two paired settings: text-only and text+image, specifying the same target through text and visual-language guidance. All instances are manually annotated with multi-round quality verification. Evaluations of 50 MLLMs show that open-source models still lag behind proprietary counterparts, particularly in audio-visual understanding. Precise temporal and spatial grounding remains challenging even for leading models, and their predictions still exhibit inconsistencies across the paired target specifications.",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2610.18829.png",
+    "numComments": 4,
+    "submittedBy": {
+      "_id": "69db8a673114e93a4dbdec28",
+      "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/69db8a673114e93a4dbdec28/eJg3LOMGXpPKPa9lrzHtE.jpeg",
+      "fullname": "PolyU_VCLab",
+      "name": "VCLab-PolyU",
+      "type": "user",
+      "isPro": true,
+      "isHf": false,
+      "isHfAdmin": false,
+      "isMod": false,
+      "followerCount": 9,
+      "isUserFollowing": false
+    },
+    "organization": {
+      "_id": "69dba0c8dc88214a5ddca3f2",
+      "name": "VCLab-HKPU",
+      "fullname": "VCLab",
+      "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/69db8a673114e93a4dbdec28/WgIv-pv3Mt2HBSdoR35eW.png"
+    },
+    "isAuthorParticipating": true
   },
   {
     "paper": {
-      "id": "2609.33333",
-      "title": "Sample Paper C: Below Threshold",
-      "summary": "Sample abstract for paper C used only in tests.",
-      "upvotes": 3,
-      "publishedAt": "2026-09-28T09:00:00.000Z"
+      "id": "2610.22200",
+      "authors": [
+        {
+          "_id": "6ad1c1478304c5d882d7b98c",
+          "name": "Hanzhang Zhou",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b98d",
+          "name": "Long Li",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b98e",
+          "user": {
+            "_id": "638c05b7d274cbbad284ced0",
+            "avatarUrl": "/avatars/e26f659316b4975562e006c081a795ba.svg",
+            "isPro": false,
+            "fullname": "Quyu Kong",
+            "user": "kongquyu",
+            "type": "user",
+            "name": "kongquyu"
+          },
+          "name": "Quyu Kong",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-10-16T16:45:05.449Z",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b98f",
+          "user": {
+            "_id": "646def60df618b303b419323",
+            "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/646def60df618b303b419323/JLJGYen4-5M8ivsLsSk0w.jpeg",
+            "isPro": false,
+            "fullname": "Lei Wang",
+            "user": "demolei",
+            "type": "user",
+            "name": "demolei"
+          },
+          "name": "Lei Wang",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-10-16T08:29:20.262Z",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b990",
+          "name": "Panrong Tong",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b991",
+          "name": "Long Chen",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b992",
+          "user": {
+            "_id": "6a8fce117e6fa9a060777a12",
+            "avatarUrl": "/avatars/fae165aac712ce74fd81b25dfbf0dc2c.svg",
+            "isPro": false,
+            "fullname": "Tianyu Xia",
+            "user": "xtyXpastor",
+            "type": "user",
+            "name": "xtyXpastor"
+          },
+          "name": "Tianyu Xia",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-10-16T08:29:22.357Z",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b993",
+          "name": "Gongjie Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b994",
+          "name": "Xu Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b995",
+          "name": "Chen Liu",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b996",
+          "name": "Jianan Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b997",
+          "name": "Chenglin Cai",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b998",
+          "name": "Zhengwen Zeng",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b999",
+          "name": "Steven Hoi",
+          "hidden": false
+        },
+        {
+          "_id": "6ad1c1478304c5d882d7b99a",
+          "name": "Yue Wang",
+          "hidden": false
+        }
+      ],
+      "mediaUrls": [
+        "https://cdn-uploads.huggingface.co/production/uploads/646def60df618b303b419323/Zfr0WDru-cgR61CBhxt8H.mp4"
+      ],
+      "publishedAt": "2026-10-15T00:00:00.000Z",
+      "submittedOnDailyAt": "2026-10-16T00:00:00.000Z",
+      "title": "OpenGCUA: Toward a Fully Open Stack for Generalist Computer Use",
+      "submittedOnDailyBy": {
+        "_id": "646def60df618b303b419323",
+        "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/646def60df618b303b419323/JLJGYen4-5M8ivsLsSk0w.jpeg",
+        "isPro": false,
+        "fullname": "Lei Wang",
+        "user": "demolei",
+        "type": "user",
+        "name": "demolei"
+      },
+      "summary": "Computer use has reached a turning point: the focus is expanding from GUI-only interaction to systems that complete tasks on users' computers through visual and programmatic interfaces. We define a generalist computer-use agent (GCUA) as a system in which the model chooses how to observe, act, and organize its work across visual and programmatic interfaces. Yet frontier implementations, such as GPT-6 Astra's computer-use system, remain largely closed, limiting systematic study of their design. We introduce Open Generalist CUA (OpenGCUA), an ongoing project to develop and open the full stack for GCUAs with the community. This report presents the first release of OpenGCUA. Code execution is a key feature of our agent design: it lets intermediate results determine subsequent operations and enables models to apply their existing programming capabilities directly to computer interaction. We also propose harness-to-model decision transfer, moving selected observations and task-state decisions from fixed harness rules to the model. On OSWorld-v2, our full configuration improves task scores across all eight evaluated models, including GPT-6 Astra and Claude Opus 5, raising mean partial score by +19.6 points and reducing reported steps per task by an average of 53.0% relative to batched GUI-only execution. We release our implementation and prompts, evaluation trajectories from all eight models, and preliminary versions of a real-device harness and a cross-device SDK. The harness addresses real-device challenges not fully captured by benchmarks, while the SDK provides a common programming interface across computers, mobiles and browsers. Across four real macOS tasks under our real-device harness, selected Qwen3.8-Max runs use 19.4 times as many reported reasoning tokens as GPT-6 Astra, highlighting substantial differences between models in real-device execution efficiency.",
+      "upvotes": 300,
+      "discussionId": "6ad1c1478304c5d882d7b99b",
+      "projectPage": "https://tongyi-mai.github.io/OpenGCUA/",
+      "githubRepo": "https://github.com/Tongyi-MAI/OpenGCUA",
+      "githubRepoAddedBy": "user",
+      "ai_summary": "OpenGCUA introduces an open generalist computer-use agent that integrates visual and programmatic interfaces, harness-to-model decision transfer, and code execution to improve task performance and efficiency across models.",
+      "ai_keywords": [
+        "generalist computer-use agent",
+        "visual and programmatic interfaces",
+        "harness-to-model decision transfer",
+        "code execution",
+        "OSWorld-v2",
+        "real-device harness",
+        "cross-device SDK"
+      ],
+      "ai_summary_model": "thinkingmachines/Inkling-Small",
+      "githubStars": 48,
+      "organization": {
+        "_id": "6925b20fed452d1567c012d3",
+        "name": "Tongyi-MAI",
+        "fullname": "Tongyi-MAI",
+        "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/64379d79fac5ea753f1c10f3/fxHO6QoYjdv9_LTyiUD3g.jpeg"
+      }
     },
-    "title": "Sample Paper C: Below Threshold",
-    "publishedAt": "2026-09-29T01:00:00.000Z",
-    "numComments": 0
+    "publishedAt": "2026-10-14T20:00:00.000Z",
+    "title": "OpenGCUA: Toward a Fully Open Stack for Generalist Computer Use",
+    "summary": "Computer use has reached a turning point: the focus is expanding from GUI-only interaction to systems that complete tasks on users' computers through visual and programmatic interfaces. We define a generalist computer-use agent (GCUA) as a system in which the model chooses how to observe, act, and organize its work across visual and programmatic interfaces. Yet frontier implementations, such as GPT-6 Astra's computer-use system, remain largely closed, limiting systematic study of their design. We introduce Open Generalist CUA (OpenGCUA), an ongoing project to develop and open the full stack for GCUAs with the community. This report presents the first release of OpenGCUA. Code execution is a key feature of our agent design: it lets intermediate results determine subsequent operations and enables models to apply their existing programming capabilities directly to computer interaction. We also propose harness-to-model decision transfer, moving selected observations and task-state decisions from fixed harness rules to the model. On OSWorld-v2, our full configuration improves task scores across all eight evaluated models, including GPT-6 Astra and Claude Opus 5, raising mean partial score by +19.6 points and reducing reported steps per task by an average of 53.0% relative to batched GUI-only execution. We release our implementation and prompts, evaluation trajectories from all eight models, and preliminary versions of a real-device harness and a cross-device SDK. The harness addresses real-device challenges not fully captured by benchmarks, while the SDK provides a common programming interface across computers, mobiles and browsers. Across four real macOS tasks under our real-device harness, selected Qwen3.8-Max runs use 19.4 times as many reported reasoning tokens as GPT-6 Astra, highlighting substantial differences between models in real-device execution efficiency.",
+    "mediaUrls": [
+      "https://cdn-uploads.huggingface.co/production/uploads/646def60df618b303b419323/Zfr0WDru-cgR61CBhxt8H.mp4"
+    ],
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2610.22200.png",
+    "numComments": 3,
+    "submittedBy": {
+      "_id": "646def60df618b303b419323",
+      "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/646def60df618b303b419323/JLJGYen4-5M8ivsLsSk0w.jpeg",
+      "fullname": "Lei Wang",
+      "name": "demolei",
+      "type": "user",
+      "isPro": false,
+      "isHf": false,
+      "isHfAdmin": false,
+      "isMod": false,
+      "followerCount": 12,
+      "isUserFollowing": false
+    },
+    "organization": {
+      "_id": "6925b20fed452d1567c012d3",
+      "name": "Tongyi-MAI",
+      "fullname": "Tongyi-MAI",
+      "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/64379d79fac5ea753f1c10f3/fxHO6QoYjdv9_LTyiUD3g.jpeg"
+    },
+    "isAuthorParticipating": true
   }
 ]

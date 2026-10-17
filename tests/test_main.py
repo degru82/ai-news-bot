@@ -26,10 +26,11 @@ def test_dry_run_with_fixtures(capsys):
     )
     out = capsys.readouterr().out
     assert code == 0
-    assert "hf_papers: 2건" in out
-    assert "arxiv: 2건" in out
+    # 실제 fixture: HF 3건 (upvotes >= 10), arXiv 0건 (주말), HN 6건
+    assert "hf_papers: 3건" in out
+    assert "arxiv: 0건" in out
     assert "ainews: 1건" in out
-    assert "hackernews: 3건" in out
+    assert "hackernews: 6건" in out
 
 
 def test_failure_of_every_source_returns_nonzero(tmp_path, capsys):
@@ -89,4 +90,5 @@ def test_only_unconfigured_sources_gives_zero(tmp_path, capsys):
     assert code == 0
     out = capsys.readouterr().out
     assert "google_alerts: 설정 안 됨 (건너뜀)" in out
-    assert "hf_papers: 2건" in out
+    # 실제 fixture: HF 3건
+    assert "hf_papers: 3건" in out

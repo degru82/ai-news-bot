@@ -24,8 +24,15 @@ HF Daily Papers, arXiv RSS, AINews RSS, Google Alerts RSS, Hacker News(Algolia) 
 - **논문 canonical_id**: arXiv URL이면 `arxiv:<버전 제거 ID>`로 통일(HF·arXiv·HN이 같은 논문이면 M2에서 병합 가능). HN은 arXiv 링크일 때만 이 규칙을 따르고 `kind`는 `community`로 둔다.
 - **HN 키워드 필터를 M1에 포함**: Algolia는 여러 키워드 OR 검색이 없어 점수·기간은 서버에서, 키워드(단어 경계, 대소문자 무시)는 코드에서 거른다. HF의 upvote 기준도 수집 단계에서 적용한다. arXiv 키워드 필터와 상한 150건은 M2(사전 필터)에서.
 - **Google Alerts**: 오류 메시지에는 피드 이름만 쓴다(피드 URL에 계정 식별 정보가 있고 Actions 로그는 공개될 수 있음). 피드 일부만 실패하면 로그 경고 후 나머지로 진행하고, 전부 실패할 때만 소스 실패로 기록한다.
+<<<<<<< HEAD
 - **미설정 소스 처리 정책**: 설정되지 않은 소스(예: `google_alerts: []`)는 `FetchResult.skipped=True`로 표시하고 종료 코드 판정에서 제외한다. 종료 코드 1은 설정된 모든 소스가 실패했을 때만 반환한다. 이유: 미설정 Alerts 소스가 성공(0건)으로 카운트되면, 나머지 소스 전체의 장애가 가려져 운영자가 알림을 받지 못할 수 있다.
 - **미확정(SPEC 13장)**: HF 응답 필드명과 AINews RSS URL은 네트워크가 막힌 환경에서 구현해 실응답으로 확인하지 못했다. `tests/fixtures/`는 손으로 쓴 샘플이며, 운영자가 `--save-fixtures`로 교체한 뒤 필드를 확정해야 M1이 완료된다.
+=======
+- **실응답 확인 완료(#13, #14, #15)**: 2026-10-16 네트워크 연결 환경에서 실응답 수집 및 확정.
+  - **HF Daily Papers API (#14)**: `https://huggingface.co/api/daily_papers?date=YYYY-MM-DD`. 응답은 논문 배열, 각 항목에 최상위 필드(`publishedAt`, `title`, `numComments`)와 중첩 `paper` 객체(`id`, `upvotes`, `githubRepo`, `githubStars`) 포함. 수집기는 `paper.githubRepo` → `signals["github_repo"]`로 정규화. 필드 매핑 정상 동작 확인.
+  - **AINews RSS URL (#15)**: `https://news.smol.ai/rss.xml` (초기 추측이 정확함). RSS 2.0 포맷, 정상 수집 확인 (최근 1건).
+  - **실제 fixture 교체 (#13)**: `tests/fixtures/`의 모든 손으로 작성한 fixture를 실제 API/RSS 응답으로 교체 (2026-10-16 수집). HF 3건, arXiv 0건 (토요일), AINews 1건, HN 6건. 테스트는 실응답 기준으로 수정됨. `uv run pytest` 전체 통과.
+>>>>>>> 4c59890 (fix: M1 실응답 fixture 교체 및 필드 확정)
 
 ## 변경 이력
 - SPEC v2(PR #6): Google Alerts를 LinkedIn 대체 경로로 채택.
