@@ -7,12 +7,62 @@
     <atom:link href="http://rss.arxiv.org/rss/cs.CL+cs.AI+cs.LG" rel="self" type="application/rss+xml"/>
     <docs>http://www.rssboard.org/rss-specification</docs>
     <language>en-us</language>
-    <lastBuildDate>Sat, 17 Oct 2026 04:38:56 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 19 Oct 2026 04:30:00 +0000</lastBuildDate>
     <managingEditor>rss-help@arxiv.org</managingEditor>
-    <pubDate>Sat, 17 Oct 2026 00:00:00 -0400</pubDate>
+    <pubDate>Mon, 19 Oct 2026 00:00:00 -0400</pubDate>
     <skipDays>
       <day>Sunday</day>
       <day>Saturday</day>
     </skipDays>
+    <item>
+      <title>Hybrid Reasoning Agents: LLM agents that think in latent space, act through
+  text. (arXiv:2610.18861v1 [cs.AI])</title>
+      <link>https://arxiv.org/abs/2610.18861</link>
+      <description>Announce Type: new
+Abstract: We introduce Hybrid Reasoning Agents (HRA), a novel architecture that combines latent-space reasoning with explicit text-based actions for improved agent performance. HRA models use a dual-process system where internal deliberation occurs in continuous latent representations, while external actions are expressed through natural language. This hybrid approach enables more efficient reasoning while maintaining interpretability. Our experiments on multi-step planning and decision-making benchmarks demonstrate that HRA achieves 23% higher task success rates compared to pure text-based agents while reducing computational costs by 40%. We analyze the trade-offs between latent and explicit reasoning, showing that the optimal balance depends on task complexity and interpretability requirements.</description>
+      <guid>https://arxiv.org/abs/2610.18861</guid>
+      <dc:creator>John Smith, Alice Johnson, Robert Chen</dc:creator>
+      <pubDate>Fri, 18 Oct 2026 17:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Efficient Retrieval-Augmented Generation via Dynamic Context Pruning.
+  (arXiv:2610.17892v2 [cs.CL] CROSS LISTED)</title>
+      <link>https://arxiv.org/abs/2610.17892</link>
+      <description>Announce Type: cross
+Abstract: Retrieval-augmented generation (RAG) systems face challenges in managing long retrieved contexts that may contain irrelevant information. We propose Dynamic Context Pruning (DCP), a method that selectively removes low-relevance passages during generation while maintaining answer quality. DCP employs a learned pruning policy that evaluates passage relevance at each decoding step, reducing context length by up to 60% while preserving or improving generation quality. Our approach achieves state-of-the-art results on multiple QA benchmarks including Natural Questions and TriviaQA, demonstrating that intelligent context management is crucial for efficient RAG systems.</description>
+      <guid>https://arxiv.org/abs/2610.17892</guid>
+      <dc:creator>Maria Garcia, Li Wei, Sarah Thompson</dc:creator>
+      <pubDate>Fri, 18 Oct 2026 17:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Benchmarking LLM Agents on Multi-Step Code Generation Tasks.
+  (arXiv:2610.19234v1 [cs.LG])</title>
+      <link>https://arxiv.org/abs/2610.19234</link>
+      <description>Announce Type: new
+Abstract: We present CodeAgentBench, a comprehensive benchmark for evaluating LLM agents on complex, multi-step code generation tasks. Unlike existing benchmarks that focus on single-function synthesis, CodeAgentBench requires agents to plan, implement, test, and debug complete software modules across diverse programming paradigms. Our benchmark includes 500 real-world tasks spanning web development, data processing, algorithm implementation, and system programming. We evaluate state-of-the-art LLM agents and find that even the best models solve only 42% of tasks end-to-end, highlighting substantial room for improvement in agentic coding capabilities.</description>
+      <guid>https://arxiv.org/abs/2610.19234</guid>
+      <dc:creator>James Wilson, Emma Davis, Michael Park</dc:creator>
+      <pubDate>Fri, 18 Oct 2026 17:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Scaling Laws for Sparse Autoencoders in Language Models. (arXiv:2609.15432v3
+  [cs.LG] UPDATED)</title>
+      <link>https://arxiv.org/abs/2609.15432</link>
+      <description>Announce Type: replace
+Abstract: (Updated with additional experiments on larger models) Sparse autoencoders (SAEs) have emerged as a promising tool for interpreting neural network representations by decomposing activations into interpretable features. However, the computational cost of training SAEs scales poorly with model size. We derive scaling laws that predict SAE training dynamics as a function of model dimension, sparsity level, and training compute. Our analysis reveals that feature quality improves predictably with scale, following a power-law relationship. These scaling laws enable practitioners to extrapolate SAE performance to larger models and make informed decisions about sparsity-quality trade-offs.</description>
+      <guid>https://arxiv.org/abs/2609.15432</guid>
+      <dc:creator>David Brown, Jennifer Lee</dc:creator>
+      <pubDate>Fri, 18 Oct 2026 17:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Self-Correcting Vision-Language Models through Iterative Refinement.
+  (arXiv:2610.18556v1 [cs.AI] CROSS LISTED)</title>
+      <link>https://arxiv.org/abs/2610.18556</link>
+      <description>Announce Type: cross
+Abstract: Vision-language models often produce outputs that contradict visual evidence or contain factual errors. We introduce Self-Correcting VLMs, a framework that enables models to iteratively refine their outputs by re-examining visual input and textual reasoning. Our approach uses a critique module that identifies inconsistencies between generated text and image content, guiding the model to produce more accurate descriptions. Experiments on VQA, image captioning, and visual reasoning tasks show that self-correction improves accuracy by 15-20% over single-pass generation, with particularly strong gains on complex visual reasoning requiring multi-hop inference.</description>
+      <guid>https://arxiv.org/abs/2610.18556</guid>
+      <dc:creator>Anna Martinez, Kevin Zhang, Laura White</dc:creator>
+      <pubDate>Fri, 18 Oct 2026 17:00:00 +0000</pubDate>
+    </item>
   </channel>
 </rss>

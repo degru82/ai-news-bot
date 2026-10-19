@@ -10,7 +10,7 @@ from briefing.models import Item
 from briefing.sources import SOURCES, ainews, alerts, arxiv, collect_all, hf, hn
 
 FIXTURES = Path(__file__).parent / "fixtures"
-# 실제 fixture 수집일 (2026-10-16)
+# 실제 fixture 수집일: HF/HN/AINews는 2026-10-16, arXiv는 평일 데이터
 NOW = datetime(2026, 10, 16, 23, 59, 59, tzinfo=UTC)
 
 
@@ -42,9 +42,19 @@ def test_hf_filters_by_upvotes_and_normalizes(config):
 
 def test_arxiv_keeps_only_new_and_cross(config):
     items = arxiv.collect(fixture_for(arxiv), config, NOW)
-    # 실제 응답(2026-10-16, 토요일): arXiv는 주말에 신규 공지를 하지 않아 빈 목록
-    # 이는 실패가 아니라 정상 동작
-    assert items == []
+    # 실제 응답 기반 fixture (평일): 2 new, 2 cross, 1 replace -> 4건 수집 (replace 제외)
+    assert len(items) == 4
+    assert [i.canonical_id for i in items] == [
+        "arxiv:2610.18861",  # new: Hybrid Reasoning Agents
+        "arxiv:2610.17892",  # cross: Efficient RAG
+        "arxiv:2610.19234",  # new: CodeAgentBench
+        "arxiv:2610.18556",  # cross: Self-Correcting VLMs
+    ]
+    # 버전 접미사 제거 확인 (2610.17892v2 -> 2610.17892, 2609.15432v3 -> 2609.15432)
+    # new와 cross만 포함, replace는 제외됨
+    assert [i.signals["announce_type"] for i in items] == ["new", "cross", "new", "cross"]
+    assert items[0].url == "https://arxiv.org/abs/2610.18861"
+    assert items[0].snippet.startswith("We introduce Hybrid Reasoning Agents")
 
 
 def test_arxiv_empty_feed_is_not_a_failure(config):
@@ -119,12 +129,9 @@ def test_collect_all_returns_valid_items_for_every_source(config):
     results = collect_all(config, fixture_for, NOW)
     assert [r.source for r in results] == [m.NAME for m in SOURCES]
     assert all(r.ok for r in results)
-    # arXiv는 주말(2026-10-16 토요일)이라 빈 목록이지만 정상
+    # 실제 응답 기반 fixture: 모든 소스가 항목을 반환 (arXiv는 평일 데이터)
     for result in results:
-        if result.source == "arxiv":
-            assert result.items == []  # 주말에는 신규 공지 없음
-        else:
-            assert result.items  # 나머지는 항목이 있어야 함
+        assert result.items  # 모든 소스가 항목이 있어야 함
         assert all(isinstance(i, Item) and i.source == result.source for i in result.items)
 
 
