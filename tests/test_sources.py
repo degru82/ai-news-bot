@@ -42,19 +42,19 @@ def test_hf_filters_by_upvotes_and_normalizes(config):
 
 def test_arxiv_keeps_only_new_and_cross(config):
     items = arxiv.collect(fixture_for(arxiv), config, NOW)
-    # 실제 응답 기반 fixture (평일): 2 new, 2 cross, 1 replace -> 4건 수집 (replace 제외)
+    # Synthetic fixture: 2 new, 2 cross, 1 replace -> 4건 수집 (replace 제외)
     assert len(items) == 4
     assert [i.canonical_id for i in items] == [
-        "arxiv:2610.18861",  # new: Hybrid Reasoning Agents
-        "arxiv:2610.17892",  # cross: Efficient RAG
-        "arxiv:2610.19234",  # new: CodeAgentBench
-        "arxiv:2610.18556",  # cross: Self-Correcting VLMs
+        "arxiv:2610.11111",  # new
+        "arxiv:2610.22222",  # cross
+        "arxiv:2610.33333",  # new
+        "arxiv:2610.55555",  # cross
     ]
-    # 버전 접미사 제거 확인 (2610.17892v2 -> 2610.17892, 2609.15432v3 -> 2609.15432)
+    # 버전 접미사 제거 확인 (v1, v2, v3 등 제거)
     # new와 cross만 포함, replace는 제외됨
     assert [i.signals["announce_type"] for i in items] == ["new", "cross", "new", "cross"]
-    assert items[0].url == "https://arxiv.org/abs/2610.18861"
-    assert items[0].snippet.startswith("We introduce Hybrid Reasoning Agents")
+    assert items[0].url == "https://arxiv.org/abs/2610.11111"
+    assert items[0].snippet.startswith("This is a synthetic paper abstract")
 
 
 def test_arxiv_empty_feed_is_not_a_failure(config):
