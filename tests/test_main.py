@@ -26,9 +26,9 @@ def test_dry_run_with_fixtures(capsys):
     )
     out = capsys.readouterr().out
     assert code == 0
-    # 실제 fixture: HF 3건, arXiv 4건 (평일), AINews 1건, HN 6건
+    # 실제 fixture: HF 3건, arXiv 5건 (3 new + 2 cross, replace 제외), AINews 1건, HN 6건
     assert "hf_papers: 3건" in out
-    assert "arxiv: 4건" in out
+    assert "arxiv: 5건" in out
     assert "ainews: 1건" in out
     assert "hackernews: 6건" in out
 
