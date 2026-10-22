@@ -1,0 +1,41 @@
+[
+  {
+    "paper": {
+      "id": "2609.11111",
+      "title": "Sample Paper A: Agentic Retrieval at Scale",
+      "summary": "Sample abstract for paper A used only in tests.",
+      "upvotes": 45,
+      "githubRepo": "https://github.com/example/paper-a",
+      "githubStars": 120,
+      "publishedAt": "2026-09-28T17:59:00.000Z"
+    },
+    "title": "Sample Paper A: Agentic Retrieval at Scale",
+    "summary": "Sample abstract for paper A used only in tests.",
+    "publishedAt": "2026-09-29T01:00:00.000Z",
+    "numComments": 3
+  },
+  {
+    "paper": {
+      "id": "2609.22222v2",
+      "title": "Sample Paper B: Efficient Inference",
+      "summary": "Sample abstract for paper B used only in tests.",
+      "upvotes": 12,
+      "publishedAt": "2026-09-28T12:00:00.000Z"
+    },
+    "title": "Sample Paper B: Efficient Inference",
+    "publishedAt": "2026-09-29T01:00:00.000Z",
+    "numComments": 0
+  },
+  {
+    "paper": {
+      "id": "2609.33333",
+      "title": "Sample Paper C: Below Threshold",
+      "summary": "Sample abstract for paper C used only in tests.",
+      "upvotes": 3,
+      "publishedAt": "2026-09-28T09:00:00.000Z"
+    },
+    "title": "Sample Paper C: Below Threshold",
+    "publishedAt": "2026-09-29T01:00:00.000Z",
+    "numComments": 0
+  }
+]

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:idx="urn:atom-extension:indexing">
+  <id>tag:google.com,2005:reader/user/00000/state/com.google/alerts/00000</id>
+  <title>Google Alert - sample</title>
+  <updated>2026-09-29T03:00:00Z</updated>
+  <entry>
+    <id>tag:google.com,2013:googlealerts/feed:1</id>
+    <title type="html">Sample &lt;b&gt;LLM&lt;/b&gt; post on LinkedIn</title>
+    <link href="https://www.google.com/url?rct=j&amp;sa=t&amp;url=https://www.linkedin.com/posts/example-post-123%3Futm_source%3Dshare&amp;ct=ga&amp;cd=SAMPLE&amp;usg=SAMPLE"/>
+    <published>2026-09-29T02:10:00Z</published>
+    <updated>2026-09-29T02:10:00Z</updated>
+    <content type="html">Sample snippet about an &lt;b&gt;AI agent&lt;/b&gt; rollout.</content>
+  </entry>
+  <entry>
+    <id>tag:google.com,2013:googlealerts/feed:2</id>
+    <title type="html">Sample news article about generative AI</title>
+    <link href="https://www.google.com/url?rct=j&amp;sa=t&amp;url=https://example.com/news/genai-1&amp;ct=ga&amp;cd=SAMPLE&amp;usg=SAMPLE"/>
+    <published>2026-09-28T23:00:00Z</published>
+    <updated>2026-09-28T23:00:00Z</updated>
+    <content type="html">Sample snippet of a news article.</content>
+  </entry>
+  <entry>
+    <id>tag:google.com,2013:googlealerts/feed:3</id>
+    <title type="html">Sample stale post</title>
+    <link href="https://www.google.com/url?rct=j&amp;sa=t&amp;url=https://www.linkedin.com/posts/old-post-456&amp;ct=ga&amp;cd=SAMPLE&amp;usg=SAMPLE"/>
+    <published>2026-09-27T01:00:00Z</published>
+    <updated>2026-09-27T01:00:00Z</updated>
+    <content type="html">Older than the lookback window.</content>
+  </entry>
+</feed>

@@ -1,0 +1,49 @@
+{
+  "hits": [
+    {
+      "objectID": "45000001",
+      "title": "Show HN: A sample LLM inference server",
+      "url": "https://example.com/llm-server?utm_source=hn",
+      "points": 250,
+      "num_comments": 88,
+      "created_at": "2026-09-29T01:30:00.000Z",
+      "created_at_i": 1790645400
+    },
+    {
+      "objectID": "45000002",
+      "title": "Sample paper discussion: agent benchmarks",
+      "url": "https://arxiv.org/abs/2609.11111v2",
+      "points": 130,
+      "num_comments": 20,
+      "created_at": "2026-09-28T20:00:00.000Z",
+      "created_at_i": 1790625600
+    },
+    {
+      "objectID": "45000003",
+      "title": "Ask HN: Sample question about Claude usage",
+      "url": null,
+      "points": 105,
+      "num_comments": 40,
+      "created_at": "2026-09-28T22:00:00.000Z",
+      "created_at_i": 1790632800
+    },
+    {
+      "objectID": "45000004",
+      "title": "Sample unrelated gardening story",
+      "url": "https://example.com/gardening",
+      "points": 400,
+      "num_comments": 10,
+      "created_at": "2026-09-29T00:00:00.000Z",
+      "created_at_i": 1790640000
+    },
+    {
+      "objectID": "45000005",
+      "title": "Sample LLM story below the points threshold",
+      "url": "https://example.com/low",
+      "points": 50,
+      "num_comments": 1,
+      "created_at": "2026-09-29T00:30:00.000Z",
+      "created_at_i": 1790641800
+    }
+  ]
+}
