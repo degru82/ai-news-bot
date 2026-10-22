@@ -36,7 +36,7 @@ def test_hf_filters_by_upvotes_and_normalizes(config):
     assert first.canonical_id == "arxiv:2610.21601"
     assert first.url == "https://huggingface.co/papers/2610.21601"
     assert first.signals["upvotes"] == 659
-    assert "githubRepo" in first.signals or "github_repo" in first.signals
+    assert "github_repo" in first.signals
     assert first.published_at is not None
 
 

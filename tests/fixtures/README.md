@@ -7,9 +7,9 @@
 - **arxiv.xml**: 2026-10-20 실제 RSS 응답 (7개 항목: 3 new, 2 cross, 2 replace)
   - HTTP 200, 757 items in feed
   - 파서는 new와 cross만 수집(5건), replace는 제외
-- **ainews.xml**: 2026-10-16 실제 RSS 응답 (최근 2건으로 trimmed)
+- **ainews.xml**: 2026-10-16 실제 RSS 응답 (파서는 최신 1건만 사용)
 - **hackernews.json**: 2026-10-16 실제 API 응답 (6건, AI 키워드·100점 이상)
-- **google_alerts.xml**: 샘플 데이터 (lookback 날짜는 2026-10-16 기준)
+- **google_alerts.xml**: 샘플 데이터 (실제 피드 URL은 계정별 식별 정보 포함, 현재 google_alerts 소스는 미설정)
 
 ## 재수집
 실제 응답을 다시 수집하려면:
