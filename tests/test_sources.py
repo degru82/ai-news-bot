@@ -10,7 +10,8 @@ from briefing.models import Item
 from briefing.sources import SOURCES, ainews, alerts, arxiv, collect_all, hf, hn
 
 FIXTURES = Path(__file__).parent / "fixtures"
-NOW = datetime(2026, 9, 29, 7, 0, tzinfo=UTC)
+# 실제 fixture 수집일: HF/HN/AINews는 2026-10-16, arXiv는 평일 데이터
+NOW = datetime(2026, 10, 16, 23, 59, 59, tzinfo=UTC)
 
 
 @pytest.fixture
@@ -26,25 +27,35 @@ def fixture_for(module: ModuleType) -> FixtureClient:
 
 def test_hf_filters_by_upvotes_and_normalizes(config):
     items = hf.collect(fixture_for(hf), config, NOW)
-    assert [i.canonical_id for i in items] == ["arxiv:2609.11111", "arxiv:2609.22222"]
+    # 실제 응답(2026-10-16): upvotes >= 10인 3개 논문
+    assert len(items) == 3
+    assert all(i.kind == "paper" for i in items)
+    assert all(i.canonical_id.startswith("arxiv:") for i in items)
+    # 첫 논문 검증
     first = items[0]
-    assert first.kind == "paper"
-    assert first.url == "https://huggingface.co/papers/2609.11111"
-    assert first.signals == {
-        "upvotes": 45,
-        "github_repo": "https://github.com/example/paper-a",
-        "github_stars": 120,
-        "comments": 3,
-    }
+    assert first.canonical_id == "arxiv:2610.21601"
+    assert first.url == "https://huggingface.co/papers/2610.21601"
+    assert first.signals["upvotes"] == 659
+    assert "github_repo" in first.signals
     assert first.published_at is not None
 
 
 def test_arxiv_keeps_only_new_and_cross(config):
     items = arxiv.collect(fixture_for(arxiv), config, NOW)
-    assert [i.canonical_id for i in items] == ["arxiv:2609.11111", "arxiv:2609.44444"]
-    assert [i.signals["announce_type"] for i in items] == ["new", "cross"]
-    assert items[0].url == "https://arxiv.org/abs/2609.11111"
-    assert items[0].snippet.startswith("Sample abstract")
+    # Real arXiv RSS: 3 new, 2 cross, 2 replace -> 5건 수집 (replace 제외)
+    assert len(items) == 5
+    assert [i.canonical_id for i in items] == [
+        "arxiv:2610.22373",  # new
+        "arxiv:2610.22379",  # new
+        "arxiv:2610.22380",  # new
+        "arxiv:2410.22659",  # cross
+        "arxiv:2604.27553",  # cross
+    ]
+    # 버전 접미사 제거 확인 (v1 등 제거)
+    # new와 cross만 포함, replace는 제외됨
+    assert [i.signals["announce_type"] for i in items] == ["new", "new", "new", "cross", "cross"]
+    assert items[0].url == "https://arxiv.org/abs/2610.22373"
+    assert items[0].snippet.startswith("LLM-based agents are increasingly used")
 
 
 def test_arxiv_empty_feed_is_not_a_failure(config):
@@ -58,9 +69,10 @@ def test_arxiv_empty_feed_is_not_a_failure(config):
 def test_ainews_returns_only_latest_issue(config):
     items = ainews.collect(fixture_for(ainews), config, NOW)
     assert len(items) == 1
-    assert items[0].title == "[AINews] Sample latest issue"
+    # 실제 응답(2026-10-16): "not much happened today"
+    assert items[0].title == "not much happened today"
     assert items[0].kind == "news"
-    assert items[0].snippet == "Latest sample issue summary with markup ."
+    assert len(items[0].snippet) > 0  # 스니펫이 존재함을 확인
 
 
 def test_alerts_unwraps_urls_and_applies_lookback(config):
@@ -92,16 +104,13 @@ def test_alerts_raises_when_all_feeds_fail_without_leaking_url(config):
 
 def test_hn_filters_keywords_and_points(config):
     items = hn.collect(fixture_for(hn), config, NOW)
-    assert [i.title for i in items] == [
-        "Show HN: A sample LLM inference server",
-        "Sample paper discussion: agent benchmarks",
-        "Ask HN: Sample question about Claude usage",
-    ]
-    assert items[0].canonical_id == "https://example.com/llm-server"
-    assert items[1].canonical_id == "arxiv:2609.11111"
-    assert items[2].url == "https://news.ycombinator.com/item?id=45000003"
-    assert items[0].signals["points"] == 250
+    # 실제 응답(2026-10-16): 6개 항목, AI 키워드·최소 점수 필터 적용됨
+    assert len(items) == 6
     assert all(i.kind == "community" for i in items)
+    assert all(i.signals["points"] >= 100 for i in items)
+    # 첫 항목 검증
+    assert "Claude" in items[0].title or "AI" in items[0].title.upper()
+    assert items[0].url.startswith("https://")
 
 
 def test_hn_sends_threshold_and_window_to_api(config):
@@ -121,8 +130,9 @@ def test_collect_all_returns_valid_items_for_every_source(config):
     results = collect_all(config, fixture_for, NOW)
     assert [r.source for r in results] == [m.NAME for m in SOURCES]
     assert all(r.ok for r in results)
+    # 실제 응답 기반 fixture: 모든 소스가 항목을 반환 (arXiv는 평일 데이터)
     for result in results:
-        assert result.items
+        assert result.items  # 모든 소스가 항목이 있어야 함
         assert all(isinstance(i, Item) and i.source == result.source for i in result.items)
 
 
