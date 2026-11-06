@@ -9,7 +9,7 @@ main에 머지되면 자동으로 이 위키에 동기화된다. 위키에서 �
 2. [소스 수집](02-sources/collection.md) — 5개 소스와 선택 이유
 3. [중복 제거·선별](03-pipeline/dedupe-and-selection.md) → [브리핑 생성](03-pipeline/briefing.md)
 4. [게시·전달](04-delivery/publishing-and-delivery.md)
-5. [운영·보안](05-operations/operations-and-security.md)
+5. [운영·보안](05-operations/operations-and-security.md), [pstack 통합](05-operations/pstack-integration.md)
 6. [마일스톤과 미정 사항](06-decisions/milestones-and-open-questions.md)
 
 ## 위키 작성 규칙
