@@ -1,0 +1,93 @@
+---
+description: Apply pstack principles and workflows for substantive coding tasks in this project
+alwaysApply: true
+---
+
+# pstack Coding Principles for ai-news-bot
+
+For substantive coding work (features, refactoring, bug fixes, PR reviews), apply pstack principles and workflows.
+
+## Plugin Installation Required
+
+Users must install pstack plugin once per environment:
+
+**Cursor**: `/add-plugin pstack`, then `/setup-pstack`  
+**Claude Code**: `/plugin marketplace add cursor/plugins`, `/plugin install pstack@cursor-plugins`, `/pstack:setup-pstack`  
+**Grok Bot**: Already installed for this user
+
+## When to Engage pstack Workflows
+
+For these tasks, consider using pstack workflows explicitly:
+
+- **Bug fixes**: `/poteto-mode` → bug-fix playbook (reproduce, root-cause, fix, verify)
+- **Features**: `/poteto-mode` → feature playbook (design from data shape, implement, verify)
+- **Refactoring**: `/poteto-mode` → refactoring playbook (behavior-preserving, test-verified)
+- **PR reviews**: `/interrogate` for rigorous multi-model review
+- **Code understanding**: `/how` (what it does) or `/why` (design rationale)
+
+Cursor agents: Use `/poteto-mode` or reference pstack principles below.  
+Claude Code agents: Use `/pstack:poteto-mode` or apply principles below.  
+Grok Bot: Mention "use pstack workflow" or apply principles below.
+
+## Core Principles (from pstack)
+
+Even without explicit pstack invocation, apply these principles to all coding:
+
+### 1. Prove It Works
+- Verify against real artifacts (run feature, read actual output, inspect diff)
+- Not proxies, self-reports, or "it compiles"
+- Show actual command output, not just claims
+
+### 2. Laziness Protocol
+- Bias toward deletion and smallest change that solves the problem
+- Remove dead code before adding new code
+
+### 3. Fix Root Causes
+- Trace symptoms to first place system went wrong
+- Fix there, not at symptom site
+- Guards are fixes only when handled state is legitimate
+
+### 4. Type System Discipline
+- Make illegal states unrepresentable
+- Parse external data at boundaries (pydantic validation)
+- Trust internal types in business logic
+
+### 5. Boundary Discipline
+- Concentrate guards at system boundaries (HTTP, file I/O, external APIs)
+- Keep business logic in pure functions
+- Separate concerns
+
+### 6. Test Behavior Not Implementation
+- Assert what users observe, not internal details
+- Tests should fail when behavior breaks, pass when internals change
+
+### 7. Sequence Verifiable Units
+- Break work into small verifiable units
+- Check each before next
+- Commit sequence proves itself
+
+### 8. Never Block on Human
+- Proceed, present result, let human course-correct after
+- Reserve confirmation for irreversible actions (merge, deploy, delete data)
+
+## Project-Specific Requirements
+
+Always honor these ai-news-bot policies:
+
+1. **SPEC.md compliance**: One PR = one milestone, range-limited changes
+2. **Tests + Lint**: `uv run pytest` and `uv run ruff check .` before PR
+3. **Interface isolation**: External calls (HTTP, Anthropic, SMTP) behind interfaces, tests use fixtures
+4. **No hardcoding**: Prompts in `prompts/`, config in `sources.yaml`
+5. **Validation**: pydantic schemas + HTML escaping for model outputs
+6. **Source isolation**: One source failure must not stop entire run
+7. **No secrets in code**: Never commit keys, subscribers, or credentials
+
+## Upstream Reference
+
+**Source**: https://github.com/cursor/plugins/tree/2776ddd2355d6d6c8747d3964600f28daf62f049/pstack  
+**License**: MIT (Copyright 2026 Lauren Tan)  
+**Plugin version**: 0.15.36 (commit 2776ddd, verified 2026-11-06)
+
+Full pstack documentation: https://github.com/cursor/plugins/blob/2776ddd2355d6d6c8747d3964600f28daf62f049/pstack/README.md
+
+For comprehensive pstack workflows, install the plugin and use `/poteto-mode` (Cursor) or `/pstack:poteto-mode` (Claude Code).

@@ -10,6 +10,24 @@ GitHub Pages에 게시하고 메일·푸시로 전달하는 일일 배치. 요�
 - 린트: `uv run ruff check . && uv run ruff format --check .`
 - dry-run: `uv run python -m briefing.main --dry-run --date 2026-09-29 --fixtures tests/fixtures`
 
+## pstack 통합 (선택적)
+실질적인 코딩 작업(기능, 리팩토링, 버그 수정, PR 리뷰)에는 [pstack](https://github.com/cursor/plugins/tree/main/pstack) 원칙과 워크플로우를 적용한다.
+pstack은 MIT 라이선스의 고품질 코드 작성 스킬셋이다(Copyright 2026 Lauren Tan).
+
+### 설치 (1회)
+- **Cursor**: `/add-plugin pstack` → `/setup-pstack`
+- **Claude Code**: `/plugin marketplace add cursor/plugins` → `/plugin install pstack@cursor-plugins` → `/pstack:setup-pstack`
+- **Grok Bot**: 이미 설치됨 (플러그인 9717366)
+
+### 사용
+- 버그 수정/기능: `/poteto-mode` (Cursor), `/pstack:poteto-mode` (Claude Code), "pstack 워크플로우로" (Grok Bot)
+- PR 리뷰: `/interrogate` (Cursor), `/pstack:interrogate` (Claude Code)
+- 코드 이해: `/how`, `/why`
+
+pstack을 명시적으로 호출하지 않아도 `.cursor/rules/pstack-coding.mdc`의 핵심 원칙(실제 검증, 최소 변경, 근본 원인 수정 등)이 자동으로 적용된다.
+
+**참조**: https://github.com/cursor/plugins/tree/2776ddd2355d6d6c8747d3964600f28daf62f049/pstack
+
 ## 규칙
 - 한 PR에는 SPEC.md의 마일스톤 하나만 구현한다. 범위 밖 변경은 PR 설명에 제안만 한다.
 - 소스 수집기는 `sources/` 아래 모듈 하나씩, 모두 `Item` 리스트를 반환하는 같은 인터페이스를 따른다.
