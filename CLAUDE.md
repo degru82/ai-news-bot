@@ -28,10 +28,12 @@ poteto-mode가 참조하는 파일들을 읽어라 (모두 `.cursor/skills/pstac
 
 ### Cursor 에이전트
 
-Always-applied project rule 없음 (description-based discovery만). 코딩 작업 시:
-1. `.cursor/skills/use-pstack-workflows/` 발견 (description 매칭)
-2. 해당 스킬이 poteto-mode 경로 안내
-3. poteto-mode 및 참조 스킬 읽기
+Always-applied project rule: `.cursor/rules/use-pstack.mdc`
+
+코딩 작업 전:
+1. Always-applied rule이 poteto-mode 경로 안내
+2. `.cursor/skills/pstack/skills/poteto-mode/SKILL.md` 읽기
+3. poteto-mode가 참조하는 스킬/플레이북 읽기
 4. 워크플로우 적용
 
 ### Claude Code 에이전트
@@ -58,6 +60,18 @@ Always-applied project rule 없음 (description-based discovery만). 코딩 작�
 - Pydantic 검증 + HTML 이스케이프
 - 한 소스 실패가 전체를 멈추지 않음
 - 비밀값 코드에 금지
+
+### 에이전트 권한 제한 (원본 사용자 승인 필수)
+
+**파괴적 Git 작업**: 푸시된 브랜치의 force-push, 리베이스, 브랜치 삭제는 명시적 사용자 확인 후에만 수행
+
+**병합 작업**: PR 병합, auto-merge 활성화는 명시적 지시 없이 금지
+
+**외부 메시지**: Slack, Linear, GitHub discussions 메시지 게시는 명시적 요청 후에만
+
+**호스트 정책 우선**: Cursor/Claude/Grok 호스트 네이티브 정책이 스킬 제안과 충돌 시 호스트 정책 우선
+
+모든 되돌릴 수 없는 작업은 실행 전 사용자 확인 필수.
 
 ### 번들 정보
 

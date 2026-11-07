@@ -43,6 +43,17 @@ In addition to pstack workflows, always honor:
 - One source failure doesn't stop entire run
 - No secrets in code
 
+## Agent Authorization Gates
+
+This project requires original user confirmation before:
+
+- **Destructive git operations on pushed branches**: force-push, rebase, branch deletion
+- **Merge operations**: PR merge, auto-merge activation
+- **External messages**: posting to Slack, Linear, GitHub discussions
+- **Irreversible actions**: any operation that cannot be undone
+
+**Host policy precedence**: When Cursor/Claude/Grok native capabilities conflict with skill suggestions, host policies take precedence.
+
 ## Upstream Bundle
 
 **Complete upstream pstack** (573 files, 8MB) from:
