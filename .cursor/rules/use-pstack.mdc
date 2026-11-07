@@ -35,12 +35,14 @@ In addition to pstack workflows, always honor ai-news-bot requirements:
 This project requires human authorization for:
 
 - **Never merge automatically**: Do not merge PRs or enable auto-merge unless explicitly instructed
-- **No destructive git operations**: No force-push, no branch deletion, no rebase of pushed commits (except integrating remote commits on own PR branch with `--force-with-lease`)
+- **No destructive git operations**: No force-push, no branch deletion, no rebase of pushed commits without explicit user confirmation
 - **No external messages**: Do not post to Slack, Linear, GitHub discussions unless explicitly asked
 - **No arbitrary model selection**: Use assigned model; do not force unavailable models or auto-install plugins
 - **Human gates for irreversible actions**: Always confirm before merge, delete, send, publish
 
 Host-native capabilities take precedence over skill suggestions when capabilities conflict.
+
+Note: Original user must confirm all destructive operations on pushed branches.
 
 ## Notes
 

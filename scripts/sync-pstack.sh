@@ -10,8 +10,9 @@ REPO_URL="https://github.com/cursor/plugins.git"
 TEMP_DIR=$(mktemp -d)
 PSTACK_DIR=".cursor/skills/pstack"
 STAGE_DIR=$(mktemp -d)
+BACKUP_DIR=""
 
-trap "rm -rf $TEMP_DIR $STAGE_DIR" EXIT
+trap 'rm -rf "$TEMP_DIR" "$STAGE_DIR"' EXIT
 
 echo "=== Syncing pstack from upstream ==="
 echo "Commit: $COMMIT"
@@ -37,17 +38,19 @@ echo
 
 cd - > /dev/null
 
-# Stage new bundle
+# Stage new bundle (preserve dotfiles)
 echo "2. Staging new bundle..."
-cp -r "$TEMP_DIR/pstack/"* "$STAGE_DIR/"
-cp -r "$TEMP_DIR/pstack/".* "$STAGE_DIR/" 2>/dev/null || true
+if ! cp -a "$TEMP_DIR/pstack/." "$STAGE_DIR/"; then
+    echo "ERROR: Failed to copy upstream files"
+    exit 1
+fi
 echo "   Staged to temporary directory"
 echo
 
-# Generate manifest (deterministic sort)
+# Generate manifest (deterministic sort, exclude local metadata)
 echo "3. Generating manifest..."
 cd "$STAGE_DIR"
-find . -type f -exec sha256sum {} \; 2>/dev/null | LC_ALL=C sort -k2 > MANIFEST.sha256
+find . -type f -not -name "MANIFEST.sha256" -not -name "PROVENANCE.md" -exec sha256sum {} \; 2>/dev/null | LC_ALL=C sort -k2 > MANIFEST.sha256
 MANIFEST_COUNT=$(wc -l < MANIFEST.sha256)
 echo "   Generated manifest with $MANIFEST_COUNT hashes"
 cd - > /dev/null
@@ -103,18 +106,45 @@ if sha256sum --strict -c MANIFEST.sha256 >/dev/null 2>&1; then
     echo "   ✓ Staged bundle integrity valid"
 else
     echo "   ✗ Staged bundle integrity check failed"
+    cd - > /dev/null
     exit 1
 fi
 cd - > /dev/null
 echo
 
-# Replace bundle atomically
+# Backup and replace bundle
 echo "6. Replacing bundle..."
 if [ -d "$PSTACK_DIR" ]; then
-    rm -rf "$PSTACK_DIR"
+    BACKUP_DIR=$(mktemp -d)
+    if ! cp -a "$PSTACK_DIR/." "$BACKUP_DIR/"; then
+        echo "ERROR: Failed to backup existing bundle"
+        exit 1
+    fi
+    echo "   Backed up existing bundle"
 fi
+
+if ! rm -rf "$PSTACK_DIR"; then
+    echo "ERROR: Failed to remove old bundle"
+    if [ -n "$BACKUP_DIR" ]; then
+        echo "   Old bundle preserved at $BACKUP_DIR (manual cleanup required)"
+    fi
+    exit 1
+fi
+
 mkdir -p "$(dirname "$PSTACK_DIR")"
-mv "$STAGE_DIR" "$PSTACK_DIR"
+if ! mv "$STAGE_DIR" "$PSTACK_DIR"; then
+    echo "ERROR: Failed to move staged bundle"
+    if [ -n "$BACKUP_DIR" ]; then
+        echo "   Restoring from backup..."
+        mv "$BACKUP_DIR" "$PSTACK_DIR"
+    fi
+    exit 1
+fi
+
+if [ -n "$BACKUP_DIR" ]; then
+    rm -rf "$BACKUP_DIR"
+fi
+
 echo "   Replaced $PSTACK_DIR with $MANIFEST_COUNT files"
 echo
 
