@@ -4,7 +4,7 @@
 
 실질적인 코딩 작업(기능, 버그 수정, 리팩토링, PR 리뷰) 시 [pstack](https://github.com/cursor/plugins/tree/main/pstack) 워크플로우를 기본 적용한다.
 
-통합 방식: **Cursor 스킬 로더 + Claude Code/Grok Bot 폴백 원칙**
+통합 방식: **실제 pstack 스킬 번들 + 저장소 내 포함 (MIT 라이선스 준수)**
 
 ## 배경·이유
 
@@ -20,16 +20,18 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 - 다중 모델 활용 및 병렬 작업 지원
 - 프로젝트 정책(SPEC.md, pytest, ruff)과 호환
 
-### 통합 제약
+### 통합 제약 및 해결
 
-**저작권**: pstack 전체를 복사하여 벤더링할 수 없음 (MIT 라이선스는 재배포 허용하나, 필요한 58개 스킬 전체 복사는 과도한 중복이며 upstream 업데이트 추적 불가)
+**MIT 라이선스 이해**:
+- MIT는 재배포 허용 (full copyright/permission/disclaimer notices 보존 시)
+- 58개 전체 스킬 복사는 과도하나, 핵심 poteto-mode 스킬은 포함 가능
+- 전체 LICENSE 파일 포함 필수
 
-**실행 환경 분리**: 
-- Cursor: 사용자 전역 플러그인 디렉토리 (`~/.cursor/plugins/cache/`)
-- Claude Code: 유사하게 사용자 전역
-- Grok Bot: 계정 레벨 플러그인
-
-→ 저장소에 커밋된 파일만으로는 실제 pstack 스킬 파일 접근 불가
+**저장소 기반 해결**:
+- `.cursor/skills/pstack/` 에 poteto-mode SKILL.md 포함
+- LICENSE 파일 전체 포함
+- Upstream 고정 참조 (commit 2776ddd)
+- 저장소 상대 경로로 접근 가능
 
 **플랫폼 차이**:
 - Cursor: 네이티브 플러그인 및 스킬 발견 지원
@@ -38,18 +40,17 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 
 ## 검토한 대안
 
-### 대안 1: pstack 전체 복사 (기각)
+### 대안 1: pstack 전체 복사 (부분 채택 → 핵심만)
 
 `.cursor/skills/`에 pstack 58개 스킬 전체 복사
 
 **장점**: 저장소만으로 완전 자급자족  
 **단점**:
-- 저작권 문제 (과도한 중복)
-- Upstream 업데이트 추적 불가
-- 저장소 크기 증가 (~200KB+ 스킬 파일)
-- 라이선스 텍스트 및 출처 관리 복잡
+- 58개 전체는 과도함
+- Upstream 업데이트 추적 필요
+- 저장소 크기 증가
 
-**결정**: 기각 (저작권 및 유지보수 부담)
+**결정**: **핵심 poteto-mode만 포함** (MIT 라이선스 준수, LICENSE 파일 포함)
 
 ### 대안 2: 원칙 요약만 (기각)
 
@@ -63,26 +64,28 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 
 **결정**: 기각 (사용자 요구사항 미충족 - 실제 스킬 읽기 필요)
 
-### 대안 3: 스킬 로더 + 폴백 (채택)
+### 대안 3: 저장소 내 실제 스킬 번들 (채택)
 
-`.cursor/skills/use-pstack-for-coding/SKILL.md`: 에이전트를 설치된 플러그인의 실제 pstack 스킬 읽기로 라우팅
+`.cursor/skills/pstack/poteto-mode/SKILL.md`: 실제 pstack 스킬을 저장소에 포함
 
 **구조**:
-1. Cursor 에이전트: 프로젝트 스킬 자동 발견 → 플러그인 스킬 경로 안내 → 실제 poteto-mode SKILL.md 읽기
-2. Claude Code/Grok Bot: CLAUDE.md의 핵심 원칙 읽기 (폴백)
+1. `.cursor/skills/pstack/LICENSE`: MIT 라이선스 전체 텍스트
+2. `.cursor/skills/pstack/poteto-mode/SKILL.md`: 실제 poteto-mode 스킬
+3. `.cursor/skills/use-pstack-workflows/SKILL.md`: 에이전트를 poteto-mode 읽기로 라우팅
+4. `CLAUDE.md`: 모든 에이전트에게 poteto-mode SKILL.md 읽기 지시
 
 **장점**:
-- 실제 스킬 파일 읽기 지시 (요약 아님)
-- 저작권 문제 없음 (로더만 커밋, 스킬 복사 안 함)
-- Upstream 업데이트 자동 반영 (사용자가 플러그인 업데이트 시)
-- 플랫폼별 대응 (Cursor = 네이티브 로딩, 기타 = 폴백)
+- **실제 스킬 파일** 저장소 내 포함 (요약 아님)
+- MIT 라이선스 준수 (전체 LICENSE 포함)
+- 사용자 플러그인 설치 불필요
+- 저장소 상대 경로로 접근 가능
+- Cursor, Claude Code, Grok Bot 모두 동일 파일 읽기
 
 **단점**:
-- 사용자가 플러그인 수동 설치 필요 (1회)
-- 플러그인 미설치 시 폴백만 적용
-- 런타임 검증 어려움 (IDE 환경 필요)
+- Upstream 업데이트 수동 동기화 필요
+- 핵심 스킬만 포함 (전체 58개 아님)
 
-**결정**: 채택 (요구사항 충족, 저작권 준수, 유지보수 가능)
+**결정**: 채택 (MIT 재배포 허용, 실제 스킬 포함, 플랫폼 무관)
 
 ## 구현 상세
 

@@ -11,41 +11,56 @@ GitHub Pages에 게시하고 메일·푸시로 전달하는 일일 배치. 요�
 - dry-run: `uv run python -m briefing.main --dry-run --date 2026-09-29 --fixtures tests/fixtures`
 
 ## pstack 워크플로우 적용
-실질적인 코딩 작업(기능, 리팩토링, 버그 수정, PR 리뷰)에는 [pstack](https://github.com/cursor/plugins/tree/main/pstack) 워크플로우를 따른다.
+실질적인 코딩 작업(기능, 리팩토링, 버그 수정, PR 리뷰) 시, 저장소에 포함된 pstack 스킬을 읽고 적용한다.
 
-### 설치 (필수, 1회)
-- **Cursor**: `/add-plugin pstack` → `/setup-pstack`
-- **Claude Code**: `/plugin marketplace add cursor/plugins` → `/plugin install pstack@cursor-plugins` → `/pstack:setup-pstack`
+### 에이전트: 코딩 작업 전에 다음 파일을 읽어라
 
-설치 후, Cursor의 `.cursor/skills/use-pstack-for-coding/` 스킬이 자동으로 에이전트를 실제 pstack poteto-mode SKILL.md 및 관련 플레이북 읽기로 라우팅한다.
+**`.cursor/skills/pstack/poteto-mode/SKILL.md`**
 
-### 코딩 요청 시 (슬래시 명령 불필요)
-에이전트는 자동으로:
-1. 설치된 pstack 플러그인에서 `poteto-mode` SKILL.md 읽음
-2. 작업 유형에 맞는 플레이북 선택 (버그 수정, 기능, 리팩토링 등)
-3. 플레이북 단계 따름, 필요 시 다른 pstack 스킬 참조
-4. 프로젝트 정책 준수 (SPEC.md, 테스트, 린트)
+이 파일은 다음을 포함한다:
+- 워크플로우 트리거 (언제 어떤 접근법 사용할지)
+- 핵심 원칙 (Prove It Works, Fix Root Causes, Laziness Protocol 등)
+- 플레이북 선택 로직 (bug fix, feature, refactoring 등)
+- ai-news-bot 프로젝트 제약사항
 
-### 명시적 호출 (선택)
-- `/poteto-mode [작업]` (Cursor)
-- `/pstack:poteto-mode [작업]` (Claude Code)
-- `/interrogate` (PR 리뷰), `/how` (코드 설명), `/why` (설계 근거)
+### Cursor 에이전트
 
-### Claude Code / Grok Bot 에이전트
-- pstack 플러그인 미설치 시: 이 문서의 핵심 원칙 (아래) 참조
-- 플러그인 설치 시: `/pstack:poteto-mode` 등 명시적 호출
+Cursor는 `.cursor/skills/use-pstack-workflows/` 스킬을 자동 발견한다.
+해당 스킬은 **`.cursor/skills/pstack/poteto-mode/SKILL.md` 읽기**를 지시한다.
 
-**핵심 원칙** (pstack 플러그인 접근 불가 시 폴백):
-1. Prove It Works - 실제 명령 실행 결과로 검증
-2. Laziness Protocol - 최소 변경, 삭제 선호
-3. Fix Root Causes - 증상이 아닌 근본 원인 수정
-4. Type System Discipline - pydantic 검증, 경계에서 파싱
-5. Boundary Discipline - 시스템 경계에 가드, 순수 비즈니스 로직
-6. Test Behavior - 사용자 관찰 가능 동작 테스트
-7. Sequence Verifiable Units - 작은 검증 가능 커밋
-8. Never Block on Human - 진행 후 결과 제시
+명시적 호출: `/poteto-mode [작업]` (선택사항, disable-model-invocation: true로 자동 안 됨)
 
-**참조**: https://github.com/cursor/plugins/tree/2776ddd2355d6d6c8747d3964600f28daf62f049/pstack (MIT, Copyright 2026 Lauren Tan)
+### Claude Code 에이전트
+
+코딩 작업 시 이 섹션을 읽고 **`.cursor/skills/pstack/poteto-mode/SKILL.md` 파일 내용**을 직접 읽어라.
+
+명시적 호출 (전체 플러그인 설치 시):
+- `/plugin marketplace add cursor/plugins`
+- `/plugin install pstack@cursor-plugins`
+- `/pstack:poteto-mode [작업]`
+
+### Grok Bot 에이전트
+
+코딩 위임 시 이 섹션 및 **`.cursor/skills/pstack/poteto-mode/SKILL.md`**를 읽어라.
+
+Grok Bot은 소스 제어에서 저장소 파일을 읽을 수 있다. 코딩 에이전트에게 poteto-mode SKILL.md 읽기를 지시하라.
+
+명시적 호출 (계정 플러그인 설치 시): `Skill("poteto-mode")` 또는 "pstack 워크플로우로 [작업]"
+
+### 프로젝트 요구사항 (poteto-mode SKILL.md에 포함)
+
+- 한 PR = 하나의 SPEC.md 마일스톤
+- 테스트: `uv run pytest`
+- 린트: `uv run ruff check .`
+- 외부 호출은 인터페이스 뒤에, 테스트는 fixture 사용
+- 프롬프트는 `prompts/`, 설정은 `sources.yaml`
+- Pydantic 검증 + HTML 이스케이프
+- 한 소스 실패가 전체를 멈추지 않음
+- 비밀값 코드에 금지
+
+**Upstream**: https://github.com/cursor/plugins/tree/2776ddd2355d6d6c8747d3964600f28daf62f049/pstack
+**License**: MIT (Copyright 2026 Lauren Tan) - 전체 라이선스는 `.cursor/skills/pstack/LICENSE` 참조
+**이 저장소**: poteto-mode 스킬 및 프로젝트 적응 버전 포함. 전체 플러그인은 upstream에서 설치 가능.
 
 ## 규칙
 - 한 PR에는 SPEC.md의 마일스톤 하나만 구현한다. 범위 밖 변경은 PR 설명에 제안만 한다.

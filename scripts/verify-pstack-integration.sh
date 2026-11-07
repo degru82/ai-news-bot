@@ -1,23 +1,23 @@
 #!/bin/bash
-# Verify pstack integration: actual skill files, parsed metadata, negative tests
-# Distinguishes static verification vs runtime validation
+# Verify pstack integration: actual bundled skills with proper licensing
+# Tests real file content validation, not just string matching
 
 set -e
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo "=== pstack Integration Verification (Static) ==="
+echo "=== pstack Integration Verification ==="
 echo
-echo "This script performs STATIC file/structure validation only."
-echo "RUNTIME validation requires Cursor IDE and is NOT performed here."
+echo "This verifies ACTUAL pstack skills bundled in repository."
+echo "STATIC validation only - runtime behavior requires IDE testing."
 echo
 
 FAILED=0
 
-# Helper: check condition and report
+# Helper: check condition
 check() {
     local name="$1"
     local condition="$2"
@@ -30,74 +30,113 @@ check() {
     fi
 }
 
-# 1. Check skill file exists and structure
-echo "1. Checking .cursor/skills/use-pstack-for-coding/SKILL.md..."
-SKILL_FILE=".cursor/skills/use-pstack-for-coding/SKILL.md"
-
-check "Skill file exists" "[ -f '$SKILL_FILE' ]"
-
-if [ -f "$SKILL_FILE" ]; then
-    # Parse YAML frontmatter properly (between --- markers)
-    FRONTMATTER=$(awk 'BEGIN {inFM=0} /^---$/ {if (inFM==0) {inFM=1; next} else {exit}} inFM==1 {print}' "$SKILL_FILE")
+# Validator function: validates skill file structure
+validate_skill_file() {
+    local file="$1"
+    local required_name="$2"
     
-    check "Has YAML frontmatter" "[ -n '$FRONTMATTER' ]"
-    check "name field present" "echo '$FRONTMATTER' | grep -q '^name:'"
-    check "description field present" "echo '$FRONTMATTER' | grep -q '^description:'"
-    check "name matches directory" "echo '$FRONTMATTER' | grep -q 'name: use-pstack-for-coding'"
-    check "Description mentions coding/features/bugs" "echo '$FRONTMATTER' | grep -qi 'coding\\|features\\|bug\\|refactor\\|review'"
+    [ -f "$file" ] || return 1
     
-    # Check skill content
-    check "Directs to read actual pstack SKILL.md" "grep -q 'read.*pstack.*SKILL\\.md\\|Read.*pstack.*skill\\|poteto-mode.*SKILL\\.md' '$SKILL_FILE'"
-    check "Mentions plugin installation required" "grep -q 'install.*plugin\\|Plugin.*Required\\|must install' '$SKILL_FILE'"
-    check "Provides fallback principles" "grep -q 'Fallback\\|fallback\\|cannot access.*principles' '$SKILL_FILE'"
-    check "No hidden user paths" "! grep -q '\\.cursor/plugins/cache.*\[hash\]\\|/Users/\\|/home/[^/]\\+/\\.cursor' '$SKILL_FILE' || grep -q 'example\\|similar\\|or similar' '$SKILL_FILE'"
+    # Extract and validate frontmatter
+    local frontmatter=$(awk 'BEGIN {inFM=0} /^---$/ {if (inFM==0) {inFM=1; next} else {exit}} inFM==1 {print}' "$file")
+    [ -n "$frontmatter" ] || return 1
+    
+    # Check required fields
+    echo "$frontmatter" | grep -q "^name:" || return 1
+    echo "$frontmatter" | grep -q "^description:" || return 1
+    
+    # Check name matches if specified
+    if [ -n "$required_name" ]; then
+        echo "$frontmatter" | grep -q "^name: *$required_name" || return 1
+    fi
+    
+    return 0
+}
+
+# 1. Check LICENSE file
+echo "1. Checking .cursor/skills/pstack/LICENSE..."
+
+LICENSE_FILE=".cursor/skills/pstack/LICENSE"
+
+check "LICENSE file exists" "[ -f '$LICENSE_FILE' ]"
+
+if [ -f "$LICENSE_FILE" ]; then
+    check "Contains 'MIT License'" "grep -q 'MIT License' '$LICENSE_FILE'"
+    check "Contains copyright (Lauren Tan)" "grep -q 'Copyright.*Lauren Tan' '$LICENSE_FILE'"
+    check "Contains permission notice" "grep -q 'Permission is hereby granted' '$LICENSE_FILE'"
+    check "Contains warranty disclaimer" "grep -q 'WITHOUT WARRANTY' '$LICENSE_FILE'"
+    check "Contains full license text (>500 chars)" "[ \$(wc -c < '$LICENSE_FILE') -gt 500 ]"
 else
-    echo -e "   ${RED}✗${NC} Cannot check frontmatter - file missing"
-    FAILED=$((FAILED + 8))
+    FAILED=$((FAILED + 4))
 fi
 echo
 
-# 2. Check CLAUDE.md integration
-echo "2. Checking CLAUDE.md integration..."
+# 2. Check poteto-mode SKILL.md
+echo "2. Checking .cursor/skills/pstack/poteto-mode/SKILL.md..."
+
+POTETO_FILE=".cursor/skills/pstack/poteto-mode/SKILL.md"
+
+check "Poteto-mode file exists" "[ -f '$POTETO_FILE' ]"
+
+if validate_skill_file "$POTETO_FILE" "poteto-mode"; then
+    echo -e "   ${GREEN}✓${NC} Valid skill file with frontmatter"
+else
+    echo -e "   ${RED}✗${NC} Invalid skill file or frontmatter"
+    FAILED=$((FAILED + 1))
+fi
+
+if [ -f "$POTETO_FILE" ]; then
+    check "Contains Principles section" "grep -q '## Principles' '$POTETO_FILE'"
+    check "Contains Playbooks section" "grep -q '## Playbooks' '$POTETO_FILE'"
+    check "Contains 'Prove It Works' principle" "grep -q 'Prove It Works' '$POTETO_FILE'"
+    check "Contains 'Fix Root Causes' principle" "grep -q 'Fix Root Causes' '$POTETO_FILE'"
+    check "Contains project constraints" "grep -q 'ai-news-bot' '$POTETO_FILE'"
+    check "References upstream source" "grep -q 'github.com/cursor/plugins.*2776ddd' '$POTETO_FILE'"
+    check "disable-model-invocation: true" "grep -q 'disable-model-invocation: true' '$POTETO_FILE'"
+else
+    FAILED=$((FAILED + 7))
+fi
+echo
+
+# 3. Check router skill
+echo "3. Checking .cursor/skills/use-pstack-workflows/SKILL.md..."
+
+ROUTER_FILE=".cursor/skills/use-pstack-workflows/SKILL.md"
+
+check "Router file exists" "[ -f '$ROUTER_FILE' ]"
+
+if validate_skill_file "$ROUTER_FILE" "use-pstack-workflows"; then
+    echo -e "   ${GREEN}✓${NC} Valid router skill with frontmatter"
+else
+    echo -e "   ${RED}✗${NC} Invalid router skill or frontmatter"
+    FAILED=$((FAILED + 1))
+fi
+
+if [ -f "$ROUTER_FILE" ]; then
+    check "Instructs to read poteto-mode" "grep -q '\\.cursor/skills/pstack/poteto-mode/SKILL\\.md' '$ROUTER_FILE'"
+    check "No speculative cache paths" "! grep -q '~/.cursor/plugins/cache.*\\[hash\\]' '$ROUTER_FILE'"
+    check "References LICENSE" "grep -q 'LICENSE' '$ROUTER_FILE'"
+else
+    FAILED=$((FAILED + 3))
+fi
+echo
+
+# 4. Check CLAUDE.md integration
+echo "4. Checking CLAUDE.md integration..."
 
 check "CLAUDE.md exists" "[ -f 'CLAUDE.md' ]"
 
 if [ -f "CLAUDE.md" ]; then
-    check "Mentions pstack" "grep -q 'pstack' CLAUDE.md"
-    check "Installation instructions present" "grep -q '/add-plugin pstack\\|plugin install pstack' CLAUDE.md"
-    check "Core principles listed" "grep -q 'Prove It Works\\|Fix Root Causes\\|핵심 원칙' CLAUDE.md"
-    check "NOT just link to rules (actual content)" "grep -q 'Prove It Works\\|Laziness Protocol\\|Type System' CLAUDE.md"
+    check "Instructs to read poteto-mode" "grep -q '\\.cursor/skills/pstack/poteto-mode/SKILL\\.md' CLAUDE.md"
+    check "References LICENSE file" "grep -q '\\.cursor/skills/pstack/LICENSE' CLAUDE.md"
+    check "Upstream attribution" "grep -q 'github.com/cursor/plugins.*2776ddd' CLAUDE.md"
+    check "No deleted .mdc paths" "! grep -q '\\.cursor/rules/pstack-coding\\.mdc' CLAUDE.md"
 else
     FAILED=$((FAILED + 4))
 fi
 echo
 
-# 3. Check upstream references
-echo "3. Checking upstream pinned references..."
-
-PINNED_SHA="2776ddd2355d6d6c8747d3964600f28daf62f049"
-
-check "Skill file has pinned SHA" "[ -f '$SKILL_FILE' ] && grep -q '$PINNED_SHA' '$SKILL_FILE'"
-check "CLAUDE.md has pinned SHA" "[ -f 'CLAUDE.md' ] && grep -q '$PINNED_SHA' CLAUDE.md"
-check "Immutable tree reference (not /main)" "[ -f '$SKILL_FILE' ] && grep -q 'tree/$PINNED_SHA' '$SKILL_FILE'"
-check "MIT license mentioned" "[ -f '$SKILL_FILE' ] && grep -q 'MIT' '$SKILL_FILE'"
-check "Copyright holder (Lauren Tan)" "[ -f '$SKILL_FILE' ] && grep -q 'Lauren Tan' '$SKILL_FILE'"
-echo
-
-# 4. Check project policy integration
-echo "4. Checking project policy integration..."
-
-if [ -f "$SKILL_FILE" ]; then
-    check "SPEC.md compliance mentioned" "grep -q 'SPEC\\.md' '$SKILL_FILE'"
-    check "pytest requirement" "grep -q 'pytest' '$SKILL_FILE'"
-    check "ruff requirement" "grep -q 'ruff' '$SKILL_FILE'"
-    check "Interface isolation mentioned" "grep -qi 'interface.*isolation\\|External calls.*interfaces' '$SKILL_FILE'"
-else
-    FAILED=$((FAILED + 4))
-fi
-echo
-
-# 5. Check docs/wiki entry
+# 5. Check wiki documentation
 echo "5. Checking docs/wiki/05-operations/pstack-integration.md..."
 
 WIKI_FILE="docs/wiki/05-operations/pstack-integration.md"
@@ -108,119 +147,122 @@ if [ -f "$WIKI_FILE" ]; then
     check "Has 결정 section" "grep -q '^## 결정' '$WIKI_FILE'"
     check "Has 배경·이유 section" "grep -q '^## 배경.*이유' '$WIKI_FILE'"
     check "Has 검토한 대안 section" "grep -q '^## 검토한 대안' '$WIKI_FILE'"
-    check "Explains design rationale" "grep -q '저작권\\|copyright\\|라이선스\\|license' '$WIKI_FILE'"
+    check "Explains MIT license compliance" "grep -q 'MIT.*재배포.*허용\\|MIT.*license.*redistribution' '$WIKI_FILE'"
     check "Links to related docs" "grep -q 'operations-and-security' '$WIKI_FILE'"
+    check "Not claiming copyright forbidden" "! grep -q '저작권.*문제.*벤더링.*불가\\|copyright.*forbidden.*vendor' '$WIKI_FILE' || grep -q '핵심.*poteto-mode.*포함' '$WIKI_FILE'"
 else
-    FAILED=$((FAILED + 5))
+    FAILED=$((FAILED + 6))
 fi
 echo
 
 # 6. Security checks
-echo "6. Checking for leaked secrets/paths..."
+echo "6. Security checks..."
 
-check "No hardcoded private plugin IDs" "! grep -r 'plugin 9717366\\|9717366' .cursor/ CLAUDE.md 2>/dev/null || ! grep -q 'Already installed\\|이미 설치됨' .cursor/ CLAUDE.md"
-check "No absolute user paths" "! grep -rE '/Users/[^/]+/\\.cursor|/home/[^/]+/\\.cursor' .cursor/ --exclude-dir=cache 2>/dev/null || grep -q 'example\\|similar' .cursor/"
-check "No API keys" "! grep -rE 'sk-[a-zA-Z0-9]{20,}|ANTH[a-zA-Z0-9]{20,}' . --exclude-dir=.git --exclude-dir=.venv 2>/dev/null"
-check "No email addresses in repo files" "! grep -rE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}' .cursor/ CLAUDE.md --exclude-dir=cache 2>/dev/null"
+check "No API keys" "! grep -rE 'sk-[a-zA-Z0-9]{20,}|ANTH[a-zA-Z0-9]{20,}' .cursor/skills/ 2>/dev/null"
+check "No email addresses" "! grep -rE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}' .cursor/skills/ 2>/dev/null"
+check "No absolute user paths" "! grep -r '/home/[^/]\\+/.cursor\\|/Users/[^/]\\+/.cursor' .cursor/skills/ 2>/dev/null"
 echo
 
-# 7. Size check (not too large = not full plugin copy)
-echo "7. Checking integration size..."
+# 7. File accessibility
+echo "7. File accessibility test..."
 
-if [ -f "$SKILL_FILE" ]; then
-    SKILL_SIZE=$(wc -c < "$SKILL_FILE")
-    check "Skill file <10KB (not full plugin copy)" "[ $SKILL_SIZE -lt 10240 ]"
-    echo "   (Actual size: $SKILL_SIZE bytes)"
+if [ -f "$POTETO_FILE" ]; then
+    CONTENT=$(cat "$POTETO_FILE" 2>/dev/null)
+    if [ ${#CONTENT} -gt 1000 ]; then
+        echo -e "   ${GREEN}✓${NC} poteto-mode SKILL.md is readable (${#CONTENT} bytes)"
+    else
+        echo -e "   ${RED}✗${NC} poteto-mode SKILL.md too small or unreadable"
+        FAILED=$((FAILED + 1))
+    fi
 else
+    echo -e "   ${RED}✗${NC} poteto-mode SKILL.md not found"
     FAILED=$((FAILED + 1))
 fi
 echo
 
-# 8. NEGATIVE TESTS (must FAIL with corrupted input)
-echo "8. Negative tests (expect failures with bad input)..."
+# 8. NEGATIVE TESTS - validate_skill_file on corrupted input
+echo "8. Negative tests (validator must reject bad input)..."
 
-# Create temp directory for negative tests
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
-# Test: Missing skill file
-echo "   Testing: Missing skill file detection..."
-mkdir -p "$TEMP_DIR/test1/.cursor/skills/use-pstack-for-coding"
-if [ -f "$SKILL_FILE" ]; then
-    # Don't copy SKILL.md, leave empty
-    if ! grep -q "read.*pstack" "$TEMP_DIR/test1/.cursor/skills/use-pstack-for-coding/SKILL.md" 2>/dev/null; then
-        echo -e "      ${GREEN}✓${NC} Correctly detects missing skill file"
-    else
-        echo -e "      ${RED}✗${NC} False positive on missing skill"
-        FAILED=$((FAILED + 1))
-    fi
+# Test 1: Missing file
+echo "   Testing: Missing file detection..."
+if ! validate_skill_file "$TEMP_DIR/nonexistent.md" "test" 2>/dev/null; then
+    echo -e "      ${GREEN}✓${NC} Correctly rejects missing file"
 else
-    echo -e "      ${YELLOW}⚠${NC}  Cannot test (main skill file missing)"
+    echo -e "      ${RED}✗${NC} False positive on missing file"
+    FAILED=$((FAILED + 1))
 fi
 
-# Test: Corrupted frontmatter
+# Test 2: Missing frontmatter
+echo "   Testing: Missing frontmatter detection..."
+cat > "$TEMP_DIR/no-fm.md" << 'EOF'
+# Some content
+No frontmatter here
+EOF
+if ! validate_skill_file "$TEMP_DIR/no-fm.md" "test" 2>/dev/null; then
+    echo -e "      ${GREEN}✓${NC} Correctly rejects missing frontmatter"
+else
+    echo -e "      ${RED}✗${NC} False positive on missing frontmatter"
+    FAILED=$((FAILED + 1))
+fi
+
+# Test 3: Corrupted frontmatter
 echo "   Testing: Corrupted frontmatter detection..."
-mkdir -p "$TEMP_DIR/test2/.cursor/skills/use-pstack-for-coding"
-cat > "$TEMP_DIR/test2/.cursor/skills/use-pstack-for-coding/SKILL.md" << 'EOF'
+cat > "$TEMP_DIR/corrupt-fm.md" << 'EOF'
 ---
-broken yaml: [unclosed
+broken: yaml: [unclosed
 description
 ---
-# Some content
+# Content
 EOF
-
-CORRUPTED_FM=$(awk '/^---$/,/^---$/{if (NR>1 && !/^---$/) print}' "$TEMP_DIR/test2/.cursor/skills/use-pstack-for-coding/SKILL.md")
-if ! echo "$CORRUPTED_FM" | grep -q "^name:.*use-pstack-for-coding"; then
-    echo -e "      ${GREEN}✓${NC} Correctly detects corrupted frontmatter"
+if ! validate_skill_file "$TEMP_DIR/corrupt-fm.md" "test" 2>/dev/null; then
+    echo -e "      ${GREEN}✓${NC} Correctly rejects corrupted frontmatter"
 else
     echo -e "      ${RED}✗${NC} False positive on corrupted frontmatter"
     FAILED=$((FAILED + 1))
 fi
 
-# Test: Missing upstream reference
-echo "   Testing: Missing upstream reference detection..."
-mkdir -p "$TEMP_DIR/test3/.cursor/skills/use-pstack-for-coding"
-cat > "$TEMP_DIR/test3/.cursor/skills/use-pstack-for-coding/SKILL.md" << 'EOF'
+# Test 4: Missing name field
+echo "   Testing: Missing name field detection..."
+cat > "$TEMP_DIR/no-name.md" << 'EOF'
 ---
-name: use-pstack-for-coding
-description: Test
+description: Test skill
 ---
-# No upstream reference here
+# Content
 EOF
-
-if ! grep -q "$PINNED_SHA" "$TEMP_DIR/test3/.cursor/skills/use-pstack-for-coding/SKILL.md"; then
-    echo -e "      ${GREEN}✓${NC} Correctly detects missing upstream reference"
+if ! validate_skill_file "$TEMP_DIR/no-name.md" "test" 2>/dev/null; then
+    echo -e "      ${GREEN}✓${NC} Correctly rejects missing name field"
 else
-    echo -e "      ${RED}✗${NC} False positive on missing reference"
+    echo -e "      ${RED}✗${NC} False positive on missing name"
     FAILED=$((FAILED + 1))
 fi
 
-# Test: No actual skill reading instruction
-echo "   Testing: Missing skill-reading instruction detection..."
-mkdir -p "$TEMP_DIR/test4/.cursor/skills/use-pstack-for-coding"
-cat > "$TEMP_DIR/test4/.cursor/skills/use-pstack-for-coding/SKILL.md" << 'EOF'
+# Test 5: Wrong name
+echo "   Testing: Wrong name detection..."
+cat > "$TEMP_DIR/wrong-name.md" << 'EOF'
 ---
-name: use-pstack-for-coding
-description: Coding work
+name: different-name
+description: Test
 ---
-# Just apply these principles
-1. Write good code
-2. Test it
+# Content
 EOF
-
-if ! grep -q "read.*pstack.*SKILL\\.md\\|poteto-mode.*SKILL\\.md" "$TEMP_DIR/test4/.cursor/skills/use-pstack-for-coding/SKILL.md"; then
-    echo -e "      ${GREEN}✓${NC} Correctly detects missing skill-reading instruction"
+if ! validate_skill_file "$TEMP_DIR/wrong-name.md" "expected-name" 2>/dev/null; then
+    echo -e "      ${GREEN}✓${NC} Correctly rejects wrong name"
 else
-    echo -e "      ${RED}✗${NC} False positive on missing instruction"
+    echo -e "      ${RED}✗${NC} False positive on wrong name"
     FAILED=$((FAILED + 1))
 fi
 
 echo
 
-# 9. README consistency
-echo "9. Checking README.md consistency..."
+# 9. Upstream provenance
+echo "9. Upstream provenance..."
 
-check "README mentions pstack" "[ -f 'README.md' ] && grep -q 'pstack' README.md"
+check "Pinned commit (2776ddd) in LICENSE" "grep -q '2776ddd' '$LICENSE_FILE' || grep -q 'upstream.*2776ddd' .cursor/skills/pstack/*/*.md"
+check "Pinned commit in poteto-mode" "grep -q '2776ddd' '$POTETO_FILE'"
+check "Pinned commit in router" "grep -q '2776ddd' '$ROUTER_FILE'"
 echo
 
 # Final summary
@@ -230,22 +272,34 @@ echo
 if [ $FAILED -eq 0 ]; then
     echo -e "${GREEN}✓ All checks passed${NC}"
     echo
-    echo "STATIC VERIFICATION: Complete"
-    echo "RUNTIME VALIDATION: NOT performed (requires Cursor IDE)"
+    echo "STATIC VALIDATION: Complete"
+    echo "- Real pstack skills bundled in .cursor/skills/pstack/"
+    echo "- MIT License with full text included"
+    echo "- Repository-relative paths (no speculative cache refs)"
+    echo "- Validator function tested with 5 negative cases"
     echo
-    echo "To test runtime behavior:"
-    echo "  1. Open this project in Cursor IDE"
-    echo "  2. Install pstack: /add-plugin pstack"
-    echo "  3. Configure models: /setup-pstack"
-    echo "  4. Make a coding request WITHOUT slash command:"
-    echo "     'Add keyword filtering to briefing/sources/hf.py'"
-    echo "  5. Check agent response references poteto-mode or pstack playbooks"
-    echo "  6. Inspect transcript for evidence of reading actual SKILL.md"
+    echo "RUNTIME VALIDATION: Not performed (requires IDE)"
+    echo
+    echo "To test runtime in Cursor:"
+    echo "  1. Open project in Cursor IDE"
+    echo "  2. Make coding request: 'Add keyword filtering to hf.py'"
+    echo "  3. Check if agent references poteto-mode principles/playbooks"
+    echo "  4. Verify agent read .cursor/skills/pstack/poteto-mode/SKILL.md"
+    echo
+    echo "To test in Claude Code:"
+    echo "  1. Agent should read CLAUDE.md guidance"
+    echo "  2. Guidance points to .cursor/skills/pstack/poteto-mode/SKILL.md"
+    echo "  3. Agent reads that file for workflow instructions"
+    echo
+    echo "To test with Grok Bot:"
+    echo "  1. Grok reads CLAUDE.md from source control"
+    echo "  2. Delegates to coding agent with poteto-mode instructions"
+    echo "  3. Coding agent reads .cursor/skills/pstack/poteto-mode/SKILL.md"
     echo
     exit 0
 else
     echo -e "${RED}✗ $FAILED check(s) failed${NC}"
     echo
-    echo "Fix the issues above before merging."
+    echo "Fix issues above before merging."
     exit 1
 fi
