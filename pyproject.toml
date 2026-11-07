@@ -28,6 +28,7 @@ packages = ["src/briefing"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+extend-exclude = [".cursor/skills/pstack"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
