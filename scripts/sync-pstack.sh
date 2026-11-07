@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sync pstack from upstream repository
+# Sync pstack from upstream repository (idempotent)
 # Usage: bash scripts/sync-pstack.sh [commit-sha]
 # Default: 2776ddd2355d6d6c8747d3964600f28daf62f049
 
@@ -9,23 +9,24 @@ COMMIT=${1:-2776ddd2355d6d6c8747d3964600f28daf62f049}
 REPO_URL="https://github.com/cursor/plugins.git"
 TEMP_DIR=$(mktemp -d)
 PSTACK_DIR=".cursor/skills/pstack"
+STAGE_DIR=$(mktemp -d)
+
+trap "rm -rf $TEMP_DIR $STAGE_DIR" EXIT
 
 echo "=== Syncing pstack from upstream ==="
 echo "Commit: $COMMIT"
-echo "Temp dir: $TEMP_DIR"
 echo
 
 # Clone upstream
 echo "1. Cloning upstream repository..."
-git clone --depth 1 --no-checkout "$REPO_URL" "$TEMP_DIR"
+git clone --depth 1 --no-checkout "$REPO_URL" "$TEMP_DIR" >/dev/null 2>&1
 cd "$TEMP_DIR"
-git fetch --depth 1 origin "$COMMIT"
-git checkout "$COMMIT"
+git fetch --depth 1 origin "$COMMIT" >/dev/null 2>&1
+git checkout "$COMMIT" >/dev/null 2>&1
 
 # Verify pstack directory exists
 if [ ! -d "pstack" ]; then
     echo "ERROR: pstack/ not found in upstream at $COMMIT"
-    rm -rf "$TEMP_DIR"
     exit 1
 fi
 
@@ -34,44 +35,33 @@ FILE_COUNT=$(find pstack -type f | wc -l)
 echo "   Found $FILE_COUNT files in upstream pstack/"
 echo
 
-# Return to workspace
 cd - > /dev/null
 
-# Backup current
-echo "2. Backing up current pstack..."
-if [ -d "$PSTACK_DIR" ]; then
-    mv "$PSTACK_DIR" "${PSTACK_DIR}.backup"
-    echo "   Backed up to ${PSTACK_DIR}.backup"
-fi
+# Stage new bundle
+echo "2. Staging new bundle..."
+cp -r "$TEMP_DIR/pstack/"* "$STAGE_DIR/"
+cp -r "$TEMP_DIR/pstack/".* "$STAGE_DIR/" 2>/dev/null || true
+echo "   Staged to temporary directory"
 echo
 
-# Copy new
-echo "3. Copying upstream pstack..."
-mkdir -p "$PSTACK_DIR"
-cp -r "$TEMP_DIR/pstack/"* "$PSTACK_DIR/"
-echo "   Copied $FILE_COUNT files"
-echo
-
-# Generate manifest
-echo "4. Generating integrity manifest..."
-cd "$PSTACK_DIR"
-find . -type f -not -path "./PROVENANCE.md" -not -path "./MANIFEST.sha256" \
-    -exec sha256sum {} \; | sort -k2 > MANIFEST.sha256
+# Generate manifest (deterministic sort)
+echo "3. Generating manifest..."
+cd "$STAGE_DIR"
+find . -type f -exec sha256sum {} \; 2>/dev/null | LC_ALL=C sort -k2 > MANIFEST.sha256
 MANIFEST_COUNT=$(wc -l < MANIFEST.sha256)
 echo "   Generated manifest with $MANIFEST_COUNT hashes"
 cd - > /dev/null
 echo
 
-# Update provenance
-echo "5. Updating PROVENANCE.md..."
-cat > "$PSTACK_DIR/PROVENANCE.md" << EOF
+# Generate provenance (deterministic, no wall clock)
+echo "4. Generating provenance..."
+cat > "$STAGE_DIR/PROVENANCE.md" << EOF
 # pstack Provenance and Integrity
 
 ## Upstream Source
 
 **Repository**: https://github.com/cursor/plugins
 **Commit SHA**: $COMMIT
-**Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
 **Path**: pstack/
 **License**: MIT (Copyright 2026 Lauren Tan)
 
@@ -86,11 +76,15 @@ This directory contains the COMPLETE pstack subtree from upstream at the pinned 
 
 File hashes are stored in \`MANIFEST.sha256\`.
 
-To verify integrity:
+Verify offline integrity (self-consistency):
 \`\`\`bash
 cd .cursor/skills/pstack
-sha256sum -c MANIFEST.sha256 --quiet
-echo \$?  # Should be 0 if all files match
+sha256sum --strict -c MANIFEST.sha256
+\`\`\`
+
+Verify provenance (byte-comparison with upstream):
+\`\`\`bash
+bash scripts/verify-upstream.sh $COMMIT
 \`\`\`
 
 ## License Compliance
@@ -99,23 +93,38 @@ MIT License permits redistribution provided copyright, permission, and disclaime
 See \`LICENSE\` for full text.
 EOF
 
-echo "   Updated PROVENANCE.md"
+echo "   Generated provenance"
 echo
 
-# Cleanup
-rm -rf "$TEMP_DIR"
-if [ -d "${PSTACK_DIR}.backup" ]; then
-    rm -rf "${PSTACK_DIR}.backup"
+# Validate staged bundle
+echo "5. Validating staged bundle..."
+cd "$STAGE_DIR"
+if sha256sum --strict -c MANIFEST.sha256 >/dev/null 2>&1; then
+    echo "   ✓ Staged bundle integrity valid"
+else
+    echo "   ✗ Staged bundle integrity check failed"
+    exit 1
 fi
+cd - > /dev/null
+echo
+
+# Replace bundle atomically
+echo "6. Replacing bundle..."
+if [ -d "$PSTACK_DIR" ]; then
+    rm -rf "$PSTACK_DIR"
+fi
+mkdir -p "$(dirname "$PSTACK_DIR")"
+mv "$STAGE_DIR" "$PSTACK_DIR"
+echo "   Replaced $PSTACK_DIR with $MANIFEST_COUNT files"
+echo
 
 echo "=== Sync complete ==="
 echo
-echo "Review changes:"
-echo "  git status"
-echo "  git diff .cursor/skills/pstack/PROVENANCE.md"
+echo "Verify integration:"
+echo "  bash scripts/verify-pstack-integration.sh"
 echo
-echo "Verify integrity:"
-echo "  cd .cursor/skills/pstack && sha256sum -c MANIFEST.sha256 --quiet"
+echo "Verify upstream match:"
+echo "  bash scripts/verify-upstream.sh $COMMIT"
 echo
 echo "If satisfied, commit:"
 echo "  git add .cursor/skills/pstack"

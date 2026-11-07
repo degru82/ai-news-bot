@@ -45,12 +45,13 @@ In addition to pstack workflows, always honor:
 
 ## Upstream Bundle
 
-**Complete upstream pstack** (571 files, 8MB) from:
+**Complete upstream pstack** (573 files, 8MB) from:
 - **Source**: https://github.com/cursor/plugins
 - **Commit**: 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **License**: MIT (Copyright 2026 Lauren Tan)
 - **Provenance**: See `.cursor/skills/pstack/PROVENANCE.md`
-- **Integrity**: Verified via `.cursor/skills/pstack/MANIFEST.sha256`
+- **Integrity**: Verified via `.cursor/skills/pstack/MANIFEST.sha256` (strict SHA256)
+- **Byte-comparison**: `bash scripts/verify-upstream.sh`
 
 This router is a LOCAL ADAPTATION for ai-news-bot. The bundled pstack is byte-for-byte upstream.
 

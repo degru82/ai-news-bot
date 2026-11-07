@@ -1,5 +1,5 @@
 #!/bin/bash
-# Verify complete pstack bundle integration with hash checking and dependency resolution
+# Verify complete pstack bundle integration with strict manifest validation
 
 set -e
 
@@ -9,59 +9,126 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 FAILED=0
+ROOT_DIR="${1:-.}"
 
 echo "=== pstack Integration Verification ==="
 echo
-echo "Verifying COMPLETE upstream pstack bundle (not condensed version)"
+echo "Root: $ROOT_DIR"
 echo "This is STATIC validation - runtime requires IDE"
 echo
 
-# Helper
-check() {
-    local name="$1"
-    local condition="$2"
-    
-    if eval "$condition"; then
-        echo -e "   ${GREEN}✓${NC} $name"
+# Helper without eval
+fail() {
+    echo -e "   ${RED}✗${NC} $1"
+    FAILED=$((FAILED + 1))
+}
+
+pass() {
+    echo -e "   ${GREEN}✓${NC} $1"
+}
+
+check_file() {
+    if [ -f "$1" ]; then
+        pass "$2"
+        return 0
     else
-        echo -e "   ${RED}✗${NC} $name"
-        FAILED=$((FAILED + 1))
+        fail "$2"
+        return 1
+    fi
+}
+
+check_dir() {
+    if [ -d "$1" ]; then
+        pass "$2"
+        return 0
+    else
+        fail "$2"
+        return 1
     fi
 }
 
 # 1. Check complete bundle structure
 echo "1. Verifying complete bundle structure..."
 
-PSTACK_DIR=".cursor/skills/pstack"
+PSTACK_DIR="$ROOT_DIR/.cursor/skills/pstack"
 
-check "pstack directory exists" "[ -d '$PSTACK_DIR' ]"
-check "LICENSE exists" "[ -f '$PSTACK_DIR/LICENSE' ]"
-check "PROVENANCE.md exists" "[ -f '$PSTACK_DIR/PROVENANCE.md' ]"
-check "MANIFEST.sha256 exists" "[ -f '$PSTACK_DIR/MANIFEST.sha256' ]"
-check "poteto-mode exists" "[ -f '$PSTACK_DIR/skills/poteto-mode/SKILL.md' ]"
-check "skills directory exists" "[ -d '$PSTACK_DIR/skills' ]"
-check "playbooks directory exists" "[ -d '$PSTACK_DIR/skills/poteto-mode/playbooks' ]"
+check_dir "$PSTACK_DIR" "pstack directory exists" || true
+check_file "$PSTACK_DIR/LICENSE" "LICENSE exists" || true
+check_file "$PSTACK_DIR/PROVENANCE.md" "PROVENANCE.md exists" || true
+check_file "$PSTACK_DIR/MANIFEST.sha256" "MANIFEST.sha256 exists" || true
+check_file "$PSTACK_DIR/.gitignore" ".gitignore exists (dotfile)" || true
+check_file "$PSTACK_DIR/.cursor-plugin/plugin.json" ".cursor-plugin/plugin.json exists (dotfile)" || true
+check_file "$PSTACK_DIR/skills/poteto-mode/SKILL.md" "poteto-mode exists" || true
+check_dir "$PSTACK_DIR/skills" "skills directory exists" || true
+check_dir "$PSTACK_DIR/skills/poteto-mode/playbooks" "playbooks directory exists" || true
 
-SKILL_COUNT=$(find "$PSTACK_DIR/skills" -maxdepth 1 -type d | wc -l)
-check "Has 58+ skills (found $SKILL_COUNT)" "[ $SKILL_COUNT -gt 58 ]"
+if [ -d "$PSTACK_DIR/skills" ]; then
+    SKILL_COUNT=$(find "$PSTACK_DIR/skills" -maxdepth 1 -type d | wc -l)
+    if [ "$SKILL_COUNT" -gt 58 ]; then
+        pass "Has 58+ skills (found $SKILL_COUNT)"
+    else
+        fail "Has 58+ skills (found $SKILL_COUNT)"
+    fi
+fi
 
 echo
 
-# 2. Verify manifest integrity
-echo "2. Verifying file integrity against manifest..."
+# 2. Strictly verify manifest format and integrity
+echo "2. Verifying manifest format and integrity..."
 
-if [ -f "$PSTACK_DIR/MANIFEST.sha256" ]; then
-    cd "$PSTACK_DIR"
-    if sha256sum -c MANIFEST.sha256 --quiet 2>/dev/null; then
-        echo -e "   ${GREEN}✓${NC} All 571 files match manifest hashes"
+if [ ! -f "$PSTACK_DIR/MANIFEST.sha256" ]; then
+    fail "MANIFEST.sha256 missing"
+else
+    MANIFEST_LINES=$(wc -l < "$PSTACK_DIR/MANIFEST.sha256")
+
+    # Check expected count
+    if [ "$MANIFEST_LINES" -eq 573 ]; then
+        pass "Manifest has 573 entries (matches upstream)"
     else
-        echo -e "   ${RED}✗${NC} Integrity check failed - files modified or missing"
-        FAILED=$((FAILED + 1))
+        fail "Manifest has $MANIFEST_LINES entries (expected 573)"
+    fi
+
+    # Strictly validate format: <64-char-hex><space><space><relative-path>
+    MALFORMED=0
+    DUPLICATES=0
+
+    while IFS= read -r line; do
+        # Check format: exactly 64 hex chars, two spaces, then path starting with ./
+        if ! echo "$line" | grep -qE '^[0-9a-f]{64}  \./[^/]'; then
+            MALFORMED=$((MALFORMED + 1))
+        fi
+    done < "$PSTACK_DIR/MANIFEST.sha256"
+
+    if [ "$MALFORMED" -eq 0 ]; then
+        pass "All manifest entries have valid SHA256 format"
+    else
+        fail "Found $MALFORMED malformed manifest entries"
+    fi
+
+    # Check for duplicate paths
+    DUPLICATES=$(cut -d' ' -f3- "$PSTACK_DIR/MANIFEST.sha256" | sort | uniq -d | wc -l)
+    if [ "$DUPLICATES" -eq 0 ]; then
+        pass "No duplicate paths in manifest"
+    else
+        fail "Found $DUPLICATES duplicate paths in manifest"
+    fi
+
+    # Verify hashes with strict mode
+    cd "$PSTACK_DIR"
+    if sha256sum --strict -c MANIFEST.sha256 >/dev/null 2>&1; then
+        pass "All 573 files match manifest hashes (strict mode)"
+    else
+        fail "Hash verification failed (strict mode)"
     fi
     cd - > /dev/null
-else
-    echo -e "   ${RED}✗${NC} MANIFEST.sha256 missing"
-    FAILED=$((FAILED + 1))
+
+    # Check for files not in manifest (excluding local metadata)
+    ACTUAL_FILES=$(find "$PSTACK_DIR" -type f -not -path "$PSTACK_DIR/PROVENANCE.md" -not -path "$PSTACK_DIR/MANIFEST.sha256" | wc -l)
+    if [ "$ACTUAL_FILES" -eq "$MANIFEST_LINES" ]; then
+        pass "No unlisted files (573 files = 573 manifest entries)"
+    else
+        fail "File count mismatch (found $ACTUAL_FILES files, manifest has $MANIFEST_LINES)"
+    fi
 fi
 
 echo
@@ -69,7 +136,6 @@ echo
 # 3. Verify referenced dependencies exist
 echo "3. Verifying referenced dependencies exist..."
 
-# Check for commonly referenced files from poteto-mode
 DEPS=(
     "skills/how/SKILL.md"
     "skills/why/SKILL.md"
@@ -84,7 +150,7 @@ DEPS=(
 )
 
 for dep in "${DEPS[@]}"; do
-    check "Dependency exists: $dep" "[ -f '$PSTACK_DIR/$dep' ]"
+    check_file "$PSTACK_DIR/$dep" "Dependency exists: $dep" || true
 done
 
 echo
@@ -94,74 +160,181 @@ echo "4. Verifying this is NOT a condensed version..."
 
 POTETO_FILE="$PSTACK_DIR/skills/poteto-mode/SKILL.md"
 
-check "Does NOT label as condensed" "! grep -qi 'condensed.*version\\|adapted.*version' '$POTETO_FILE'"
-check "Does NOT say playbooks not bundled" "! grep -qi 'not.*bundled\\|playbooks.*not.*included' '$POTETO_FILE'"
-check "playbooks/ directory actually exists" "[ -d '$PSTACK_DIR/skills/poteto-mode/playbooks' ]"
+if [ -f "$POTETO_FILE" ]; then
+    if grep -qi 'condensed.*version\|adapted.*version' "$POTETO_FILE"; then
+        fail "Should NOT label as condensed"
+    else
+        pass "Does NOT label as condensed"
+    fi
 
-PLAYBOOK_COUNT=$(find "$PSTACK_DIR/skills/poteto-mode/playbooks" -name "*.md" -type f | wc -l)
-check "Has playbooks (found $PLAYBOOK_COUNT)" "[ $PLAYBOOK_COUNT -gt 15 ]"
+    if grep -qi 'not.*bundled\|playbooks.*not.*included' "$POTETO_FILE"; then
+        fail "Should NOT say playbooks not bundled"
+    else
+        pass "Does NOT say playbooks not bundled"
+    fi
+fi
+
+if [ -d "$PSTACK_DIR/skills/poteto-mode/playbooks" ]; then
+    pass "playbooks/ directory actually exists"
+    PLAYBOOK_COUNT=$(find "$PSTACK_DIR/skills/poteto-mode/playbooks" -name "*.md" -type f | wc -l)
+    if [ "$PLAYBOOK_COUNT" -gt 15 ]; then
+        pass "Has playbooks (found $PLAYBOOK_COUNT)"
+    else
+        fail "Has playbooks (found $PLAYBOOK_COUNT, expected >15)"
+    fi
+else
+    fail "playbooks/ directory missing"
+fi
 
 echo
 
 # 5. Check router skill
 echo "5. Verifying router skill..."
 
-ROUTER_FILE=".cursor/skills/use-pstack-workflows/SKILL.md"
+ROUTER_FILE="$ROOT_DIR/.cursor/skills/use-pstack-workflows/SKILL.md"
 
-check "Router exists" "[ -f '$ROUTER_FILE' ]"
-check "Router references complete bundle" "grep -q 'complete upstream pstack' '$ROUTER_FILE'"
-check "Router references correct entry path" "grep -q 'skills/poteto-mode/SKILL\\.md' '$ROUTER_FILE'"
-check "Router mentions dependency resolution" "grep -qi 'referenced.*skills.*bundled\\|following.*references' '$ROUTER_FILE'"
+check_file "$ROUTER_FILE" "Router exists" || true
+
+if [ -f "$ROUTER_FILE" ]; then
+    if grep -q 'complete upstream pstack\|완전한 upstream' "$ROUTER_FILE"; then
+        pass "Router references complete bundle"
+    else
+        fail "Router should reference complete bundle"
+    fi
+
+    if grep -q 'skills/poteto-mode/SKILL\.md' "$ROUTER_FILE"; then
+        pass "Router references correct entry path"
+    else
+        fail "Router should reference correct entry path"
+    fi
+
+    if grep -qi 'referenced.*skills.*bundled\|following.*references' "$ROUTER_FILE"; then
+        pass "Router mentions dependency resolution"
+    else
+        fail "Router should mention dependency resolution"
+    fi
+fi
 
 echo
 
 # 6. Check CLAUDE.md
 echo "6. Verifying CLAUDE.md..."
 
-check "CLAUDE.md exists" "[ -f 'CLAUDE.md' ]"
-check "References correct entry path" "grep -q 'skills/poteto-mode/SKILL\\.md' CLAUDE.md"
-check "Mentions complete bundle" "grep -q '완전한 upstream pstack\\|complete upstream pstack' CLAUDE.md"
-check "No deleted .mdc references" "! grep -q '\\.cursor/rules/pstack-coding\\.mdc' CLAUDE.md"
+CLAUDE_FILE="$ROOT_DIR/CLAUDE.md"
+
+check_file "$CLAUDE_FILE" "CLAUDE.md exists" || true
+
+if [ -f "$CLAUDE_FILE" ]; then
+    if grep -q 'skills/poteto-mode/SKILL\.md' "$CLAUDE_FILE"; then
+        pass "References correct entry path"
+    else
+        fail "Should reference correct entry path"
+    fi
+
+    if grep -q '완전한 upstream pstack\|complete upstream pstack' "$CLAUDE_FILE"; then
+        pass "Mentions complete bundle"
+    else
+        fail "Should mention complete bundle"
+    fi
+
+    if grep -q '\.cursor/rules/pstack-coding\.mdc' "$CLAUDE_FILE"; then
+        fail "Should NOT reference deleted .mdc file"
+    else
+        pass "No deleted .mdc references"
+    fi
+fi
 
 echo
 
 # 7. Check README.md
 echo "7. Verifying README.md..."
 
-check "README exists" "[ -f 'README.md' ]"
-check "No deleted .mdc references" "! grep -q '\\.cursor/rules/pstack-coding\\.mdc' README.md"
-check "References pstack bundle" "grep -q 'pstack' README.md"
+README_FILE="$ROOT_DIR/README.md"
+
+check_file "$README_FILE" "README exists" || true
+
+if [ -f "$README_FILE" ]; then
+    if grep -q '\.cursor/rules/pstack-coding\.mdc' "$README_FILE"; then
+        fail "Should NOT reference deleted .mdc file"
+    else
+        pass "No deleted .mdc references"
+    fi
+
+    if grep -q 'pstack' "$README_FILE"; then
+        pass "References pstack bundle"
+    else
+        fail "Should reference pstack bundle"
+    fi
+fi
 
 echo
 
-# 8. Verify provenance
-echo "8. Verifying provenance and upstream attribution..."
+# 8. Check Cursor always-applied rule
+echo "8. Verifying Cursor always-applied rule..."
+
+CURSOR_RULE="$ROOT_DIR/.cursor/rules/use-pstack.mdc"
+
+check_file "$CURSOR_RULE" "Cursor rule exists" || true
+
+if [ -f "$CURSOR_RULE" ]; then
+    if grep -q 'alwaysApply.*true' "$CURSOR_RULE"; then
+        pass "Rule has alwaysApply: true"
+    else
+        fail "Rule should have alwaysApply: true"
+    fi
+
+    if grep -q 'skills/poteto-mode/SKILL\.md' "$CURSOR_RULE"; then
+        pass "Rule references actual repo SKILL"
+    else
+        fail "Rule should reference actual repo SKILL"
+    fi
+fi
+
+echo
+
+# 9. Verify provenance
+echo "9. Verifying provenance..."
 
 PROV_FILE="$PSTACK_DIR/PROVENANCE.md"
 
-check "Provenance mentions commit SHA" "grep -q '2776ddd' '$PROV_FILE'"
-check "Provenance mentions 571 files" "grep -q '571' '$PROV_FILE'"
-check "LICENSE file exists" "[ -f '$PSTACK_DIR/LICENSE' ]"
-check "LICENSE is complete (>1000 bytes)" "[ \$(wc -c < '$PSTACK_DIR/LICENSE') -gt 1000 ]"
+if [ -f "$PROV_FILE" ]; then
+    if grep -q '2776ddd' "$PROV_FILE"; then
+        pass "Provenance mentions commit SHA"
+    else
+        fail "Provenance should mention commit SHA"
+    fi
 
-echo
+    if grep -q '573' "$PROV_FILE"; then
+        pass "Provenance mentions 573 files"
+    else
+        fail "Provenance should mention 573 files (not 571)"
+    fi
+else
+    fail "PROVENANCE.md missing"
+fi
 
-# 9. Verify sync script
-echo "9. Verifying sync script..."
-
-SYNC_SCRIPT="scripts/sync-pstack.sh"
-
-check "Sync script exists" "[ -f '$SYNC_SCRIPT' ]"
-check "Sync script is executable" "[ -x '$SYNC_SCRIPT' ]"
-check "Sync script generates manifest" "grep -q 'MANIFEST.sha256' '$SYNC_SCRIPT'"
+if [ -f "$PSTACK_DIR/LICENSE" ]; then
+    pass "LICENSE file exists"
+    LICENSE_SIZE=$(wc -c < "$PSTACK_DIR/LICENSE")
+    if [ "$LICENSE_SIZE" -gt 1000 ]; then
+        pass "LICENSE is complete (>1000 bytes)"
+    else
+        fail "LICENSE seems incomplete ($LICENSE_SIZE bytes)"
+    fi
+else
+    fail "LICENSE missing"
+fi
 
 echo
 
 # 10. Security checks
 echo "10. Security checks..."
 
-check "No API keys in bundle" "! grep -r 'sk-[a-zA-Z0-9]\\{20,\\}' '$PSTACK_DIR' 2>/dev/null"
-check "No emails in bundle" "! grep -rE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}' '$PSTACK_DIR'/{LICENSE,PROVENANCE.md,MANIFEST.sha256} 2>/dev/null"
+if grep -rE 'sk-[a-zA-Z0-9]{20,}' "$PSTACK_DIR" 2>/dev/null | grep -qv MANIFEST; then
+    fail "Found potential API keys"
+else
+    pass "No obvious API keys in bundle"
+fi
 
 echo
 
@@ -173,19 +346,22 @@ if [ $FAILED -eq 0 ]; then
     echo -e "${GREEN}✓ All checks passed${NC}"
     echo
     echo "STATIC VALIDATION: Complete"
-    echo "- Complete upstream pstack bundle (571 files, 8MB)"
-    echo "- All file hashes match manifest"
+    echo "- Complete upstream pstack bundle (573 files, 8MB)"
+    echo "- All file hashes match manifest (strict mode)"
     echo "- All referenced dependencies present"
     echo "- NOT a condensed version"
     echo "- Playbooks, principles, references all bundled"
+    echo "- Dotfiles (.gitignore, .cursor-plugin/) included"
+    echo
+    echo "OFFLINE INTEGRITY: Self-consistent"
+    echo "- Manifest format valid (573 entries, no duplicates)"
+    echo "- All files listed, no missing/unlisted files"
+    echo "- Hash verification passes (strict mode)"
+    echo
+    echo "PROVENANCE: Not verified by this check"
+    echo "- Use scripts/verify-upstream.sh for byte-comparison"
     echo
     echo "RUNTIME VALIDATION: Not performed (requires IDE)"
-    echo
-    echo "Manual integrity check:"
-    echo "  cd .cursor/skills/pstack && sha256sum -c MANIFEST.sha256 --quiet && echo OK"
-    echo
-    echo "To update from upstream:"
-    echo "  bash scripts/sync-pstack.sh [commit-sha]"
     echo
     exit 0
 else

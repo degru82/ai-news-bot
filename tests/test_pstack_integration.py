@@ -32,8 +32,7 @@ class TestPstackIntegrationValidator:
     def run_validator_in_dir(self, validator_script: Path, target_dir: Path) -> tuple[int, str]:
         """Run the production validator in a specific directory."""
         result = subprocess.run(
-            ["bash", str(validator_script)],
-            cwd=target_dir,
+            ["bash", str(validator_script), str(target_dir)],
             capture_output=True,
             text=True,
         )
@@ -210,3 +209,73 @@ class TestPstackIntegrationValidator:
             returncode, output = self.run_validator_in_dir(validator_script, tmp_path)
             assert returncode != 0, "Should fail with stale README references"
             assert "No deleted .mdc references" in output
+
+    def test_validator_detects_malformed_manifest_hash(
+        self, workspace_root: Path, validator_script: Path
+    ) -> None:
+        """Validator should fail when manifest has malformed hash (not 64-char hex)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+
+            # Copy everything
+            shutil.copytree(workspace_root, tmp_path, dirs_exist_ok=True, symlinks=True)
+
+            # Corrupt manifest with malformed hash
+            manifest = tmp_path / ".cursor" / "skills" / "pstack" / "MANIFEST.sha256"
+            if manifest.exists():
+                with open(manifest) as f:
+                    lines = f.readlines()
+                with open(manifest, "w") as f:
+                    # First line malformed
+                    f.write("XXXX0123456789abcdef  ./LICENSE\n")
+                    f.writelines(lines[1:])
+
+            returncode, output = self.run_validator_in_dir(validator_script, tmp_path)
+            assert returncode != 0, "Should fail with malformed manifest hash"
+            assert "malformed" in output.lower() or "valid SHA256" in output
+
+    def test_validator_detects_duplicate_manifest_paths(
+        self, workspace_root: Path, validator_script: Path
+    ) -> None:
+        """Validator should fail when manifest has duplicate paths."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+
+            # Copy everything
+            shutil.copytree(workspace_root, tmp_path, dirs_exist_ok=True, symlinks=True)
+
+            # Add duplicate entry to manifest
+            manifest = tmp_path / ".cursor" / "skills" / "pstack" / "MANIFEST.sha256"
+            if manifest.exists():
+                with open(manifest, "a") as f:
+                    # Duplicate the LICENSE entry
+                    hash_val = "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e"
+                    f.write(f"{hash_val}  ./LICENSE\n")
+
+            returncode, output = self.run_validator_in_dir(validator_script, tmp_path)
+            assert returncode != 0, "Should fail with duplicate manifest paths"
+            assert "duplicate" in output.lower()
+
+    def test_validator_detects_wrong_file_count(
+        self, workspace_root: Path, validator_script: Path
+    ) -> None:
+        """Validator should fail when file count doesn't match manifest count."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+
+            # Copy everything
+            shutil.copytree(workspace_root, tmp_path, dirs_exist_ok=True, symlinks=True)
+
+            # Remove last line from manifest
+            manifest = tmp_path / ".cursor" / "skills" / "pstack" / "MANIFEST.sha256"
+            if manifest.exists():
+                with open(manifest) as f:
+                    lines = f.readlines()
+                with open(manifest, "w") as f:
+                    f.writelines(lines[:-1])
+
+            returncode, output = self.run_validator_in_dir(validator_script, tmp_path)
+            assert returncode != 0, "Should fail with wrong file count"
+            assert "count" in output.lower() or "mismatch" in output.lower(), (
+                f"Expected file count error, got: {output}"
+            )

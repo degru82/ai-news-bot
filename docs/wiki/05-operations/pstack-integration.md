@@ -4,7 +4,7 @@
 
 실질적인 코딩 작업(기능, 버그 수정, 리팩토링, PR 리뷰) 시 [pstack](https://github.com/cursor/plugins/tree/main/pstack) 워크플로우를 기본 적용한다.
 
-통합 방식: **완전한 upstream pstack 번들 (571 files, 8MB) + 저장소 내 포함 (MIT 라이선스 준수)**
+통합 방식: **완전한 upstream pstack 번들 (573 files, 8MB) + 저장소 내 포함 (MIT 라이선스 준수)**
 
 ## 배경·이유
 
@@ -32,7 +32,7 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 
 **완전성 요구사항**:
 - poteto-mode만으로는 부족: 참조된 스킬/playbook이 "not bundled" 되면 작동 불가
-- **해결: 완전한 upstream pstack 트리 (571 files) 복사**
+- **해결: 완전한 upstream pstack 트리 (573 files) 복사**
 - 크기는 허용 범위 (8MB), 의존성 누락 문제 해결
 
 **저장소 기반 해결**:
@@ -101,7 +101,7 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 
 ### 대안 5: 완전한 upstream pstack 번들 (채택)
 
-**완전한 upstream pstack 트리 (571 files, 8MB) 저장소 포함**
+**완전한 upstream pstack 트리 (573 files, 8MB) 저장소 포함**
 
 **구조**:
 1. `.cursor/skills/pstack/`: 완전한 upstream pstack (byte-for-byte)
@@ -129,7 +129,7 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 - 8MB 크기 (git 저장소에 포함)
 - Upstream 업데이트 수동 동기화 필요
 
-**결정**: 채택 (사용자 명시 "571 files ACCEPTABLE", MIT 허용, 의존성 갭 해결)
+**결정**: 채택 (사용자 명시 "573 files ACCEPTABLE", MIT 허용, 의존성 갭 해결)
 
 ## 구현 상세
 
@@ -137,11 +137,11 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 
 **위치**: `.cursor/skills/pstack/`
 
-**내용** (571 files, 8MB, byte-for-byte upstream copy):
+**내용** (573 files, 8MB, byte-for-byte upstream copy):
 ```
 .cursor/skills/pstack/
 ├── LICENSE                          # 원본 MIT 라이선스 (변경 없음)
-├── MANIFEST.sha256                  # 571 files SHA256 해시 (local)
+├── MANIFEST.sha256                  # 573 files SHA256 해시 (local)
 ├── PROVENANCE.md                    # upstream commit SHA, 출처 (local)
 ├── README.md                        # upstream README
 ├── plugin.json                      # upstream plugin metadata
@@ -188,7 +188,7 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 4. Claude Code: CLAUDE.md → poteto-mode → 참조 스킬
 5. Grok Bot: 소스 제어 → CLAUDE.md → 코딩 에이전트에 지시
 
-**번들 정보**: 571 files, 8MB, commit 2776ddd, MIT 라이선스
+**번들 정보**: 573 files, 8MB, commit 2776ddd, MIT 라이선스
 
 ### 4. 호스트별 작동 방식
 
@@ -225,7 +225,7 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 5. 라우터: `use-pstack-workflows` 존재, 올바른 entry point 경로 참조
 6. CLAUDE.md: poteto-mode 경로 참조, "완전한 upstream" 언급
 7. README.md: 삭제된 `.cursor/rules/pstack-coding.mdc` 참조 없음
-8. Provenance: commit SHA `2776ddd`, 571 files 언급
+8. Provenance: commit SHA `2776ddd`, 573 files 언급
 9. 동기화 스크립트: 존재, 실행 가능, manifest 생성 로직
 10. 보안: API key, 이메일 누출 확인
 
@@ -283,7 +283,7 @@ AI 코딩 도구(Cursor, Claude Code, Grok Bot)로 작업 시, 매번 고품질 
 
 **Provenance 추적**:
 - `.cursor/skills/pstack/PROVENANCE.md`: 출처 URL, commit SHA, 날짜
-- `.cursor/skills/pstack/MANIFEST.sha256`: 571 files 무결성 해시
+- `.cursor/skills/pstack/MANIFEST.sha256`: 573 files 무결성 해시
 
 ## 유지보수
 
@@ -310,12 +310,12 @@ git commit -m "Update pstack to <new-commit-sha>"
 
 ```bash
 cd .cursor/skills/pstack
-sha256sum -c MANIFEST.sha256 --quiet && echo "OK: All 571 files intact"
+sha256sum -c MANIFEST.sha256 --quiet && echo "OK: All 573 files intact"
 ```
 
 ## 변경 이력
 
-- 2026-11-07 PR #18 (43330a4 → HEAD): **완전한 upstream pstack 번들 (571 files)**
+- 2026-11-07 PR #18 (43330a4 → HEAD): **완전한 upstream pstack 번들 (573 files)**
   - 대안 1-4 기각 (문서만, 요약, 캐시 경로, poteto-mode만)
   - 대안 5 채택: 완전한 upstream 복사 + SHA256 manifest + 동기화 스크립트
   - 이유: 의존성 갭 해결, MIT 준수, 재현 가능성

@@ -1,0 +1,49 @@
+---
+alwaysApply: true
+---
+
+# pstack Workflows for Substantive Coding
+
+For substantive coding work (features, refactoring, bug fixes, PR reviews), read and apply pstack workflows from the repository bundle.
+
+## Required Reading
+
+**Before starting substantive coding**, read:
+
+`.cursor/skills/pstack/skills/poteto-mode/SKILL.md`
+
+Then follow references within that skill to:
+- Playbooks: `.cursor/skills/pstack/skills/poteto-mode/playbooks/*.md`
+- Principles: `.cursor/skills/pstack/skills/principle-*/SKILL.md`
+- Supporting skills: `.cursor/skills/pstack/skills/{how,why,interrogate}/SKILL.md`
+
+All referenced files are bundled in the repository at `.cursor/skills/pstack/` (573 upstream files).
+
+## Project Constraints
+
+In addition to pstack workflows, always honor ai-news-bot requirements:
+
+- One PR = one SPEC.md milestone
+- Tests: `uv run pytest`
+- Lint: `uv run ruff check . && uv run ruff format --check .`
+- External calls behind interfaces, tests use fixtures
+- Config in `sources.yaml`, prompts in `prompts/`
+- No secrets in code, logs, or fixtures
+
+## Agent Autonomy Limits
+
+This project requires human authorization for:
+
+- **Never merge automatically**: Do not merge PRs or enable auto-merge unless explicitly instructed
+- **No destructive git operations**: No force-push, no branch deletion, no rebase of pushed commits (except integrating remote commits on own PR branch with `--force-with-lease`)
+- **No external messages**: Do not post to Slack, Linear, GitHub discussions unless explicitly asked
+- **No arbitrary model selection**: Use assigned model; do not force unavailable models or auto-install plugins
+- **Human gates for irreversible actions**: Always confirm before merge, delete, send, publish
+
+Host-native capabilities take precedence over skill suggestions when capabilities conflict.
+
+## Notes
+
+- Upstream pstack has `disable-model-invocation: true` (native Cursor plugin mechanism does not auto-invoke)
+- This always-applied rule provides project default: read actual repo skills for coding work
+- This is project instruction, not runtime guarantee; description-based selection remains best-effort

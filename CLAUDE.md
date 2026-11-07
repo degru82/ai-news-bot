@@ -61,14 +61,15 @@ Always-applied project rule 없음 (description-based discovery만). 코딩 작�
 
 ### 번들 정보
 
-**완전한 upstream pstack** (571 files, 8MB):
+**완전한 upstream pstack** (573 files, 8MB):
 - **소스**: https://github.com/cursor/plugins
 - **커밋**: 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **라이선스**: MIT (Copyright 2026 Lauren Tan) - `.cursor/skills/pstack/LICENSE` 참조
 - **Provenance**: `.cursor/skills/pstack/PROVENANCE.md`
-- **무결성**: `.cursor/skills/pstack/MANIFEST.sha256` (571 file hashes)
+- **무결성**: `.cursor/skills/pstack/MANIFEST.sha256` (573 file hashes, strict SHA256 validation)
+- **검증**: `bash scripts/verify-upstream.sh` (byte-comparison with upstream)
 
-모든 58개 스킬, 플레이북, 참조, 원칙이 byte-for-byte 포함됨. 요약 아님, 완전한 upstream.
+모든 58개 스킬, 플레이북, 참조, 원칙, dotfiles가 byte-for-byte 포함됨. 요약 아님, 완전한 upstream.
 
 ## 규칙
 - 한 PR에는 SPEC.md의 마일스톤 하나만 구현한다. 범위 밖 변경은 PR 설명에 제안만 한다.
