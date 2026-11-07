@@ -276,6 +276,6 @@ class TestPstackIntegrationValidator:
 
             returncode, output = self.run_validator_in_dir(validator_script, tmp_path)
             assert returncode != 0, "Should fail with wrong file count"
-            assert "count" in output.lower() or "mismatch" in output.lower(), (
-                f"Expected file count error, got: {output}"
+            assert "do not match" in output.lower() or "entries" in output.lower(), (
+                f"Expected file/path set mismatch, got: {output}"
             )

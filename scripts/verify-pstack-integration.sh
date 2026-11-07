@@ -113,22 +113,33 @@ else
         fail "Found $DUPLICATES duplicate paths in manifest"
     fi
 
-    # Verify hashes with strict mode
+    # Verify manifest paths exactly match actual files (canonical set equality)
     cd "$PSTACK_DIR"
+
+    # Get actual files (sorted, relative paths starting with ./)
+    find . -type f -not -name "MANIFEST.sha256" -not -name "PROVENANCE.md" | LC_ALL=C sort > /tmp/actual_files.$$
+
+    # Get manifest paths (sorted)
+    cut -d' ' -f3- MANIFEST.sha256 | LC_ALL=C sort > /tmp/manifest_paths.$$
+
+    if diff /tmp/actual_files.$$ /tmp/manifest_paths.$$ > /tmp/path_diff.$$ 2>&1; then
+        pass "Manifest paths exactly match actual files (canonical set)"
+        rm -f /tmp/actual_files.$$ /tmp/manifest_paths.$$ /tmp/path_diff.$$
+    else
+        fail "Manifest paths do not match actual files"
+        if [ -f /tmp/path_diff.$$ ]; then
+            head -20 /tmp/path_diff.$$ >&2
+        fi
+        rm -f /tmp/actual_files.$$ /tmp/manifest_paths.$$ /tmp/path_diff.$$
+    fi
+
+    # Verify hashes with strict mode
     if sha256sum --strict -c MANIFEST.sha256 >/dev/null 2>&1; then
-        pass "All 573 files match manifest hashes (strict mode)"
+        pass "All 573 file hashes match manifest (strict mode)"
     else
         fail "Hash verification failed (strict mode)"
     fi
     cd - > /dev/null
-
-    # Check for files not in manifest (excluding local metadata)
-    ACTUAL_FILES=$(find "$PSTACK_DIR" -type f -not -path "$PSTACK_DIR/PROVENANCE.md" -not -path "$PSTACK_DIR/MANIFEST.sha256" | wc -l)
-    if [ "$ACTUAL_FILES" -eq "$MANIFEST_LINES" ]; then
-        pass "No unlisted files (573 files = 573 manifest entries)"
-    else
-        fail "File count mismatch (found $ACTUAL_FILES files, manifest has $MANIFEST_LINES)"
-    fi
 fi
 
 echo
