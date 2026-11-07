@@ -1,52 +1,62 @@
 ---
 name: use-pstack-workflows
-description: For substantive coding work (features, refactoring, bug fixes, PR reviews), read and apply pstack workflows from .cursor/skills/pstack/poteto-mode/SKILL.md
+description: For substantive coding work (features, refactoring, bug fixes, PR reviews), read and apply pstack workflows from .cursor/skills/pstack/
 ---
 
-# Use pstack Workflows for Coding
+# Use pstack Workflows for ai-news-bot
 
-For substantive coding work (features, refactoring, bug fixes, PR reviews), **read and apply the actual pstack poteto-mode skill** bundled in this repository.
+For substantive coding work (features, refactoring, bug fixes, PR reviews), read and apply **complete upstream pstack** bundled in `.cursor/skills/pstack/`.
 
-## Instructions for All Agents
+## Entry Point
 
-**Before starting substantive coding work, read:**
+**Read first**: `.cursor/skills/pstack/skills/poteto-mode/SKILL.md`
 
-`.cursor/skills/pstack/poteto-mode/SKILL.md`
+This is the main pstack workflow skill with:
+- Complete workflow triggers
+- All core principles (with references to principle-* skills)
+- Playbook selection logic (references to playbooks/*.md)
+- Instructions to read referenced skills as needed
 
-This file contains:
-- Complete workflow triggers (when to use each approach)
-- Core principles (Prove It Works, Fix Root Causes, etc.)
-- Playbook selection logic
-- Project-specific constraints for ai-news-bot
+## Following References
 
-**Key sections to read:**
-1. Non-negotiables - workflow triggers
-2. Principles - core engineering principles
-3. Playbooks - when to use each (bug fix, feature, refactoring, etc.)
-4. Project-specific constraints - ai-news-bot requirements
+poteto-mode references other skills and playbooks. They are ALL bundled:
 
-## Project Requirements
+- **Skills**: `.cursor/skills/pstack/skills/[skill-name]/SKILL.md`
+  - Example: `how`, `why`, `interrogate`, `architect`, `arena`, `swarm`, etc.
+- **Principles**: `.cursor/skills/pstack/skills/principle-[name]/SKILL.md`
+  - Example: `principle-prove-it-works`, `principle-fix-root-causes`, etc.
+- **Playbooks**: `.cursor/skills/pstack/skills/poteto-mode/playbooks/[name].md`
+  - Example: `bug-fix.md`, `feature.md`, `refactoring.md`, etc.
 
-Always honor ai-news-bot policies from poteto-mode SKILL.md:
+All paths are relative to `.cursor/skills/pstack/`.
+
+## ai-news-bot Project Constraints
+
+In addition to pstack workflows, always honor:
 
 - One PR = one SPEC.md milestone
-- Tests pass: `uv run pytest`
-- Lint passes: `uv run ruff check .`
-- External calls behind interfaces
-- No hardcoding (use `prompts/`, `sources.yaml`)
+- Tests: `uv run pytest`
+- Lint: `uv run ruff check . && uv run ruff format --check .`
+- External calls behind interfaces, tests use fixtures
+- Prompts in `prompts/`, config in `sources.yaml`
 - Pydantic validation + HTML escaping
+- One source failure doesn't stop entire run
 - No secrets in code
 
-## Upstream Attribution
+## Upstream Bundle
 
-**Source**: https://github.com/cursor/plugins/tree/2776ddd2355d6d6c8747d3964600f28daf62f049/pstack
-**License**: MIT (Copyright 2026 Lauren Tan) - see `.cursor/skills/pstack/LICENSE`
-**This repository contains**: Condensed pstack with poteto-mode skill for project use
-**Full plugin**: Install from https://github.com/cursor/plugins for complete capabilities
+**Complete upstream pstack** (571 files, 8MB) from:
+- **Source**: https://github.com/cursor/plugins
+- **Commit**: 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **License**: MIT (Copyright 2026 Lauren Tan)
+- **Provenance**: See `.cursor/skills/pstack/PROVENANCE.md`
+- **Integrity**: Verified via `.cursor/skills/pstack/MANIFEST.sha256`
+
+This router is a LOCAL ADAPTATION for ai-news-bot. The bundled pstack is byte-for-byte upstream.
 
 ## Notes
 
-- `disable-model-invocation: true` on poteto-mode means it won't auto-trigger
-- This router skill provides project-level entry point
-- Agents must explicitly read poteto-mode SKILL.md as instructed above
-- This satisfies the requirement for "actual skill reading" not summaries
+- poteto-mode has `disable-model-invocation: true` - it won't auto-trigger
+- This router provides project default: read poteto-mode, follow its references
+- All referenced dependencies are bundled and accessible
+- No condensing, no summaries - complete upstream preserved

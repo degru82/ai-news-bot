@@ -10,57 +10,65 @@ GitHub Pages에 게시하고 메일·푸시로 전달하는 일일 배치. 요�
 - 린트: `uv run ruff check . && uv run ruff format --check .`
 - dry-run: `uv run python -m briefing.main --dry-run --date 2026-09-29 --fixtures tests/fixtures`
 
-## pstack 워크플로우 적용
-실질적인 코딩 작업(기능, 리팩토링, 버그 수정, PR 리뷰) 시, 저장소에 포함된 pstack 스킬을 읽고 적용한다.
+## pstack 워크플로우 (코딩 작업 시 필수 읽기)
+실질적인 코딩 작업(기능, 리팩토링, 버그 수정, PR 리뷰) 시, 저장소에 번들된 **완전한 upstream pstack**을 읽고 적용한다.
 
-### 에이전트: 코딩 작업 전에 다음 파일을 읽어라
+### 에이전트: 코딩 작업 전 필수
 
-**`.cursor/skills/pstack/poteto-mode/SKILL.md`**
+**1단계: Entry point 읽기**
 
-이 파일은 다음을 포함한다:
-- 워크플로우 트리거 (언제 어떤 접근법 사용할지)
-- 핵심 원칙 (Prove It Works, Fix Root Causes, Laziness Protocol 등)
-- 플레이북 선택 로직 (bug fix, feature, refactoring 등)
-- ai-news-bot 프로젝트 제약사항
+`.cursor/skills/pstack/skills/poteto-mode/SKILL.md`
+
+**2단계: 참조된 스킬/플레이북 읽기**
+
+poteto-mode가 참조하는 파일들을 읽어라 (모두 `.cursor/skills/pstack/`에 번들됨):
+- 스킬: `skills/[skill-name]/SKILL.md` (예: how, why, interrogate, architect 등)
+- 원칙: `skills/principle-[name]/SKILL.md` (예: principle-prove-it-works 등)
+- 플레이북: `skills/poteto-mode/playbooks/[name].md` (예: bug-fix.md, feature.md 등)
 
 ### Cursor 에이전트
 
-Cursor는 `.cursor/skills/use-pstack-workflows/` 스킬을 자동 발견한다.
-해당 스킬은 **`.cursor/skills/pstack/poteto-mode/SKILL.md` 읽기**를 지시한다.
-
-명시적 호출: `/poteto-mode [작업]` (선택사항, disable-model-invocation: true로 자동 안 됨)
+Always-applied project rule 없음 (description-based discovery만). 코딩 작업 시:
+1. `.cursor/skills/use-pstack-workflows/` 발견 (description 매칭)
+2. 해당 스킬이 poteto-mode 경로 안내
+3. poteto-mode 및 참조 스킬 읽기
+4. 워크플로우 적용
 
 ### Claude Code 에이전트
 
-코딩 작업 시 이 섹션을 읽고 **`.cursor/skills/pstack/poteto-mode/SKILL.md` 파일 내용**을 직접 읽어라.
-
-명시적 호출 (전체 플러그인 설치 시):
-- `/plugin marketplace add cursor/plugins`
-- `/plugin install pstack@cursor-plugins`
-- `/pstack:poteto-mode [작업]`
+1. 이 `CLAUDE.md` 섹션 읽기
+2. `.cursor/skills/pstack/skills/poteto-mode/SKILL.md` 읽기
+3. Poteto-mode가 참조하는 스킬/플레이북 읽기 (위 경로 참조)
+4. 워크플로우 적용
 
 ### Grok Bot 에이전트
 
-코딩 위임 시 이 섹션 및 **`.cursor/skills/pstack/poteto-mode/SKILL.md`**를 읽어라.
+1. 소스 제어에서 이 `CLAUDE.md` 읽기
+2. 코딩 에이전트에게 poteto-mode 읽기 지시
+3. 에이전트가 `.cursor/skills/pstack/skills/poteto-mode/SKILL.md` 및 참조 파일 읽기
+4. 워크플로우 적용
 
-Grok Bot은 소스 제어에서 저장소 파일을 읽을 수 있다. 코딩 에이전트에게 poteto-mode SKILL.md 읽기를 지시하라.
-
-명시적 호출 (계정 플러그인 설치 시): `Skill("poteto-mode")` 또는 "pstack 워크플로우로 [작업]"
-
-### 프로젝트 요구사항 (poteto-mode SKILL.md에 포함)
+### ai-news-bot 프로젝트 제약 (항상 준수)
 
 - 한 PR = 하나의 SPEC.md 마일스톤
 - 테스트: `uv run pytest`
-- 린트: `uv run ruff check .`
+- 린트: `uv run ruff check . && uv run ruff format --check .`
 - 외부 호출은 인터페이스 뒤에, 테스트는 fixture 사용
 - 프롬프트는 `prompts/`, 설정은 `sources.yaml`
 - Pydantic 검증 + HTML 이스케이프
 - 한 소스 실패가 전체를 멈추지 않음
 - 비밀값 코드에 금지
 
-**Upstream**: https://github.com/cursor/plugins/tree/2776ddd2355d6d6c8747d3964600f28daf62f049/pstack
-**License**: MIT (Copyright 2026 Lauren Tan) - 전체 라이선스는 `.cursor/skills/pstack/LICENSE` 참조
-**이 저장소**: poteto-mode 스킬 및 프로젝트 적응 버전 포함. 전체 플러그인은 upstream에서 설치 가능.
+### 번들 정보
+
+**완전한 upstream pstack** (571 files, 8MB):
+- **소스**: https://github.com/cursor/plugins
+- **커밋**: 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **라이선스**: MIT (Copyright 2026 Lauren Tan) - `.cursor/skills/pstack/LICENSE` 참조
+- **Provenance**: `.cursor/skills/pstack/PROVENANCE.md`
+- **무결성**: `.cursor/skills/pstack/MANIFEST.sha256` (571 file hashes)
+
+모든 58개 스킬, 플레이북, 참조, 원칙이 byte-for-byte 포함됨. 요약 아님, 완전한 upstream.
 
 ## 규칙
 - 한 PR에는 SPEC.md의 마일스톤 하나만 구현한다. 범위 밖 변경은 PR 설명에 제안만 한다.

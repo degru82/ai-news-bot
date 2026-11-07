@@ -27,7 +27,7 @@ uv run ruff check . && uv run ruff format --check .   # 린트
 
 ### AI 코딩 지원 (pstack)
 
-코딩 작업 시 [pstack](https://github.com/cursor/plugins/tree/main/pstack) 원칙이 자동 적용됩니다 (`.cursor/rules/pstack-coding.mdc`).
-pstack 플러그인 설치 후 `/poteto-mode` (Cursor) 또는 `/pstack:poteto-mode` (Claude Code)로 전체 워크플로우 사용 가능.
-설치 방법은 CLAUDE.md 참고.
+코딩 작업 시 [pstack](https://github.com/cursor/plugins/tree/main/pstack) 워크플로우를 적용합니다.
+완전한 upstream pstack (571 files) 번들 포함: `.cursor/skills/pstack/`
+자세한 내용은 CLAUDE.md 참고.
 키워드나 Google Alerts 피드는 `sources.yaml`에 추가하는 PR로 기여할 수 있습니다.
